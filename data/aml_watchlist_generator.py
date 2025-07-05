@@ -17,7 +17,7 @@ logging.basicConfig( level=logging.INFO )
 logger = logging.getLogger( __name__ )
 
 # Directory configuration
-DATA_DIR = r"C:\Users\somas\PycharmProjects\FinGuard Pro\data"
+DATA_DIR = r"/\data"
 
 # PostgreSQL configuration
 DB_CONFIG = {
@@ -418,4 +418,4 @@ if __name__ == "__main__" :
     print( "\n=== Files Generated ===" )
     print( "1. aml_watchlist.csv - Main AML watchlist" )
     print( "2. sample_transactions.csv - Sample transactions with some watchlist matches" )
-    print( "\nFiles are ready for use with the FinGuard Pro name screening engine!" )
+    print( "\nFiles are ready for use with the FinGuardPro name screening engine!" )

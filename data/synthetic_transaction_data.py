@@ -192,7 +192,7 @@ class TransactionDataGenerator :
     def __init__ ( self, num_users=10000, num_transactions=100000, use_database=False ) :
         self.num_users = num_users
         self.num_transactions = num_transactions
-        self.data_dir = r"C:\Users\somas\PycharmProjects\FinGuard Pro\data"
+        self.data_dir = r"/\data"
         self.use_database = use_database
 
         # Create directory if it doesn't exist
@@ -406,7 +406,7 @@ class TransactionDataGenerator :
 
 def main () :
     """Main function to demonstrate usage"""
-    print( "🚀 FinGuard Pro - Transaction Data Generator with PostgreSQL" )
+    print( "🚀 FinGuardPro - Transaction Data Generator with PostgreSQL" )
     print( "=" * 60 )
 
     # Ask user if they want to use database

@@ -6,7 +6,7 @@ import os
 class FraudPDFReport( FPDF ) :
     def header ( self ) :
         self.set_font( "Arial", "B", 14 )
-        self.cell( 0, 10, "FinGuard Pro - Fraud Transaction Report", ln=True, align="C" )
+        self.cell( 0, 10, "FinGuardPro - Fraud Transaction Report", ln=True, align="C" )
         self.ln( 5 )
 
     def footer ( self ) :

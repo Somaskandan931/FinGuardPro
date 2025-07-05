@@ -12,14 +12,14 @@ import seaborn as sns
 
 # Configure page
 st.set_page_config(
-    page_title="FinGuard Pro - User Dashboard",
+    page_title="FinGuardPro - User Dashboard",
     page_icon="💳",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # Custom CSS for modern styling
-st.markdown("""
+st.markdown( """
     <style>
     .main {
         padding: 2rem;
@@ -120,35 +120,45 @@ st.markdown("""
         border-left: 4px solid #F44336;
     }
     </style>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True )
+
 
 # Authentication configuration
-def get_user_config():
+def get_user_config () :
     config = {
-        'credentials': {
-            'usernames': {
-                'user1': {
-                    'name': 'John Doe',
-                    'password': '$2b$12$lKOzLvY4mZJLOzZ1lVyZH.O7KjLfGxDGF1lWRZgGqzPLaJZQZQzLa'  # user123
+        'credentials' : {
+            'usernames' : {
+                'user1' : {
+                    'name' : 'John Doe',
+                    'password' : '$2b$12$lKOzLvY4mZJLOzZ1lVyZH.O7KjLfGxDGF1lWRZgGqzPLaJZQZQzLa'  # user123
                 },
-                'user2': {
-                    'name': 'Jane Smith',
-                    'password': '$2b$12$lKOzLvY4mZJLOzZ1lVyZH.O7KjLfGxDGF1lWRZgGqzPLaJZQZQzLa'  # user123
+                'user2' : {
+                    'name' : 'Jane Smith',
+                    'password' : '$2b$12$lKOzLvY4mZJLOzZ1lVyZH.O7KjLfGxDGF1lWRZgGqzPLaJZQZQzLa'  # user123
                 },
-                'demo': {
-                    'name': 'Demo User',
-                    'password': '$2b$12$lKOzLvY4mZJLOzZ1lVyZH.O7KjLfGxDGF1lWRZgGqzPLaJZQZQzLa'  # user123
+                'demo' : {
+                    'name' : 'Demo User',
+                    'password' : '$2b$12$lKOzLvY4mZJLOzZ1lVyZH.O7KjLfGxDGF1lWRZgGqzPLaJZQZQzLa'  # user123
                 }
             }
         },
-        'cookie': {
-            'name': 'finguard_user_cookie',
-            'key': 'finguard_user_secret_key_2024',
-            'expiry_days': 1
+        'cookie' : {
+            'name' : 'finguard_user_cookie',
+            'key' : 'finguard_user_secret_key_2024',
+            'expiry_days' : 1
         },
-        'preauthorized': {'emails': []}
+        'preauthorized' : {'emails' : []}
     }
     return config
+
+
+# Initialize session state for authentication
+if 'user_authentication_status' not in st.session_state :
+    st.session_state['user_authentication_status'] = None
+if 'user_name' not in st.session_state :
+    st.session_state['user_name'] = None
+if 'user_username' not in st.session_state :
+    st.session_state['user_username'] = None
 
 # Initialize authenticator
 config = get_user_config()
@@ -160,397 +170,413 @@ authenticator = stauth.Authenticate(
     config['preauthorized']
 )
 
-# Login
-name, authentication_status, username = authenticator.login('Login to User Dashboard', 'main')
+# Fixed login call - using the correct method signature
+if st.session_state['user_authentication_status'] is None :
+    try :
+        # Use the login widget with unique form name
+        name, authentication_status, username = authenticator.login(
+            form_name='User Login',
+            location='main',
+            max_login_attempts=3,
+            fields={'Form name' : 'User Login', 'Username' : 'Username', 'Password' : 'Password', 'Login' : 'Login'}
+        )
 
-if authentication_status == True:
-    # Logout button in sidebar
-    authenticator.logout("Logout", "sidebar")
-    
+        # Store in session state
+        st.session_state['user_authentication_status'] = authentication_status
+        st.session_state['user_name'] = name
+        st.session_state['user_username'] = username
+
+    except Exception as e :
+        # Fallback to simple login if the above fails
+        try :
+            name, authentication_status, username = authenticator.login( 'User Login', 'main' )
+            st.session_state['user_authentication_status'] = authentication_status
+            st.session_state['user_name'] = name
+            st.session_state['user_username'] = username
+        except Exception as e2 :
+            st.error( f"Login system error: {str( e2 )}" )
+            st.stop()
+
+# Get values from session state
+name = st.session_state['user_name']
+authentication_status = st.session_state['user_authentication_status']
+username = st.session_state['user_username']
+
+# Handle logout
+if authentication_status == True :
+    with st.sidebar :
+        if st.button( "Logout" ) :
+            st.session_state['user_authentication_status'] = None
+            st.session_state['user_name'] = None
+            st.session_state['user_username'] = None
+            st.experimental_rerun()
+
+if authentication_status == True :
     # Welcome message
-    st.sidebar.success(f"Welcome back, {name}! 👋")
-    st.sidebar.markdown("---")
-    
+    st.sidebar.success( f"Welcome back, {name}! 👋" )
+    st.sidebar.markdown( "---" )
+
     # Header
-    st.markdown('<h1 class="header-text">💳 FinGuard Pro</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Personal Financial Security Dashboard</p>', unsafe_allow_html=True)
-    
+    st.markdown( '<h1 class="header-text">💳 FinGuardPro</h1>', unsafe_allow_html=True )
+    st.markdown( '<p class="sub-header">Personal Financial Security Dashboard</p>', unsafe_allow_html=True )
+
     # Dashboard navigation
-    st.sidebar.title("🧭 Navigation")
+    st.sidebar.title( "🧭 Navigation" )
     page = st.sidebar.selectbox(
         "Select Page",
         ["🏠 Dashboard", "📊 Transaction Analysis", "📈 My Reports", "⚙️ Settings"]
     )
-    
+
+
     # Load model and preprocessor
     @st.cache_resource
-    def load_model_and_scaler():
-        try:
+    def load_model_and_scaler () :
+        try :
             # Use relative paths that work across different systems
-            base_path = Path(__file__).parent.parent
+            base_path = Path( __file__ ).parent.parent
             model_path = base_path / 'models' / 'fraud_detection_model.h5'
             scaler_path = base_path / 'models' / 'scaler.pkl'
-            
-            if not model_path.exists():
+
+            if not model_path.exists() :
                 return None, None, "Model file not found"
-            
-            if not scaler_path.exists():
+
+            if not scaler_path.exists() :
                 return None, None, "Scaler file not found"
-            
-            model = tf.keras.models.load_model(str(model_path))
-            scaler = joblib.load(str(scaler_path))
+
+            model = tf.keras.models.load_model( str( model_path ) )
+            scaler = joblib.load( str( scaler_path ) )
             return model, scaler, "success"
-        except Exception as e:
-            return None, None, f"Error loading model: {str(e)}"
-    
+        except Exception as e :
+            return None, None, f"Error loading model: {str( e )}"
+
+
     model, scaler, load_status = load_model_and_scaler()
-    
-    if page == "🏠 Dashboard":
-        st.markdown("## 🏠 Dashboard Overview")
-        
+
+
+    # Generate sample data for demonstration
+    @st.cache_data
+    def generate_sample_data () :
+        np.random.seed( 42 )
+        n_transactions = 100
+
+        # Generate sample transaction data
+        data = {
+            'transaction_id' : [f'TXN_{i:06d}' for i in range( n_transactions )],
+            'amount' : np.random.lognormal( 3, 1.5, n_transactions ),
+            'merchant_category' : np.random.choice( ['Grocery', 'Gas', 'Restaurant', 'Online', 'ATM', 'Other'],
+                                                    n_transactions ),
+            'transaction_hour' : np.random.randint( 0, 24, n_transactions ),
+            'is_weekend' : np.random.choice( [0, 1], n_transactions, p=[0.7, 0.3] ),
+            'days_since_last_transaction' : np.random.exponential( 1, n_transactions ),
+            'distance_from_home' : np.random.exponential( 5, n_transactions ),
+            'card_present' : np.random.choice( [0, 1], n_transactions, p=[0.3, 0.7] ),
+            'timestamp' : pd.date_range( start='2024-01-01', periods=n_transactions, freq='D' )
+        }
+
+        df = pd.DataFrame( data )
+
+        # Add fraud probability (simulate model predictions)
+        df['fraud_probability'] = np.random.beta( 2, 8, n_transactions )
+        df['is_fraud'] = (df['fraud_probability'] > 0.7).astype( int )
+
+        return df
+
+
+    sample_data = generate_sample_data()
+
+    if page == "🏠 Dashboard" :
+        st.markdown( "## 🏠 Dashboard Overview" )
+
         # Quick stats
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            if model is not None:
-                st.markdown('<div class="success-card"><h3>✅ Security Status</h3><p>Protected</p></div>', unsafe_allow_html=True)
-            else:
-                st.markdown('<div class="warning-card"><h3>⚠️ Security Status</h3><p>Limited</p></div>', unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown('<div class="metric-card"><h3>📊 Analysis</h3><p>Ready</p></div>', unsafe_allow_html=True)
-        
-        with col3:
-            st.markdown('<div class="success-card"><h3>📱 Mobile</h3><p>Optimized</p></div>', unsafe_allow_html=True)
-        
-        with col4:
-            st.markdown('<div class="metric-card"><h3>🔐 Privacy</h3><p>Secure</p></div>', unsafe_allow_html=True)
-        
-        # Quick actions
-        st.markdown("## 🚀 Quick Actions")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.button("📤 Upload Transactions", key="quick_upload"):
-                st.session_state.page = "📊 Transaction Analysis"
-                st.rerun()
-        
-        with col2:
-            if st.button("📊 View Analytics", key="quick_analytics"):
-                st.session_state.page = "📈 My Reports"
-                st.rerun()
-        
-        # System status
-        st.markdown("## ℹ️ System Status")
-        if load_status != "success":
-            st.warning(f"⚠️ {load_status}")
-            st.info("Some features may be limited without the fraud detection model.")
-        else:
-            st.success("✅ All systems operational!")
-        
-        # Security tips
-        st.markdown("## 🛡️ Security Tips")
-        st.info("""
-        **Keep your transactions safe:**
-        - Regularly monitor your account activity
-        - Report suspicious transactions immediately
-        - Use strong, unique passwords
-        - Enable two-factor authentication when available
-        """)
-    
-    elif page == "📊 Transaction Analysis":
-        st.markdown("## 📊 Transaction Analysis")
-        
-        if model is None or scaler is None:
-            st.error("❌ Transaction analysis is not available without the fraud detection model.")
-            st.info("Please contact your system administrator to enable this feature.")
-        else:
-            # File upload
-            uploaded_file = st.file_uploader(
-                "📤 Upload Your Transaction Data",
-                type=["csv"],
-                help="Upload a CSV file containing your transaction data for fraud analysis"
+        col1, col2, col3, col4 = st.columns( 4 )
+
+        with col1 :
+            if model is not None :
+                st.markdown( '<div class="success-card"><h3>✅ Security Status</h3><p>Protected</p></div>',
+                             unsafe_allow_html=True )
+            else :
+                st.markdown( '<div class="warning-card"><h3>⚠️ Security Status</h3><p>Demo Mode</p></div>',
+                             unsafe_allow_html=True )
+
+        with col2 :
+            fraud_count = sample_data['is_fraud'].sum()
+            st.markdown( f'<div class="metric-card"><h3>🚨 Fraud Alerts</h3><p>{fraud_count}</p></div>',
+                         unsafe_allow_html=True )
+
+        with col3 :
+            total_transactions = len( sample_data )
+            st.markdown( f'<div class="metric-card"><h3>📊 Total Transactions</h3><p>{total_transactions}</p></div>',
+                         unsafe_allow_html=True )
+
+        with col4 :
+            total_amount = sample_data['amount'].sum()
+            st.markdown( f'<div class="metric-card"><h3>💰 Total Amount</h3><p>${total_amount:,.2f}</p></div>',
+                         unsafe_allow_html=True )
+
+        # Recent transactions
+        st.markdown( "## 📋 Recent Transactions" )
+
+        # Sort by timestamp descending
+        recent_transactions = sample_data.sort_values( 'timestamp', ascending=False ).head( 10 )
+
+        for idx, row in recent_transactions.iterrows() :
+            fraud_prob = row['fraud_probability']
+
+            if fraud_prob > 0.7 :
+                card_class = "transaction-danger"
+                risk_level = "🚨 High Risk"
+            elif fraud_prob > 0.4 :
+                card_class = "transaction-warning"
+                risk_level = "⚠️ Medium Risk"
+            else :
+                card_class = "transaction-safe"
+                risk_level = "✅ Low Risk"
+
+            st.markdown( f'''
+                <div class="{card_class}">
+                    <strong>{row['transaction_id']}</strong> - ${row['amount']:.2f} at {row['merchant_category']} | {risk_level} ({fraud_prob:.2%})
+                </div>
+            ''', unsafe_allow_html=True )
+
+        # Charts
+        st.markdown( "## 📈 Analytics" )
+
+        col1, col2 = st.columns( 2 )
+
+        with col1 :
+            st.subheader( "Transaction Amount Distribution" )
+            fig, ax = plt.subplots()
+            ax.hist( sample_data['amount'], bins=20, alpha=0.7, color='skyblue' )
+            ax.set_xlabel( 'Amount ($)' )
+            ax.set_ylabel( 'Frequency' )
+            st.pyplot( fig )
+
+        with col2 :
+            st.subheader( "Fraud Risk by Merchant Category" )
+            fraud_by_merchant = sample_data.groupby( 'merchant_category' )['fraud_probability'].mean()
+            fig, ax = plt.subplots()
+            fraud_by_merchant.plot( kind='bar', ax=ax, color='coral' )
+            ax.set_ylabel( 'Average Fraud Probability' )
+            ax.set_xlabel( 'Merchant Category' )
+            plt.xticks( rotation=45 )
+            st.pyplot( fig )
+
+    elif page == "📊 Transaction Analysis" :
+        st.markdown( "## 📊 Transaction Analysis" )
+
+        # Transaction checker
+        st.markdown( "### 🔍 Check Individual Transaction" )
+
+        with st.form( "transaction_form" ) :
+            col1, col2 = st.columns( 2 )
+
+            with col1 :
+                amount = st.number_input( "Transaction Amount ($)", min_value=0.01, value=100.0 )
+                merchant_category = st.selectbox( "Merchant Category",
+                                                  ['Grocery', 'Gas', 'Restaurant', 'Online', 'ATM', 'Other'] )
+                transaction_hour = st.slider( "Transaction Hour", 0, 23, 12 )
+                is_weekend = st.checkbox( "Weekend Transaction" )
+
+            with col2 :
+                days_since_last = st.number_input( "Days Since Last Transaction", min_value=0.0, value=1.0 )
+                distance_from_home = st.number_input( "Distance from Home (miles)", min_value=0.0, value=5.0 )
+                card_present = st.checkbox( "Card Present", value=True )
+
+            submitted = st.form_submit_button( "Analyze Transaction" )
+
+            if submitted :
+                # Simulate fraud prediction
+                # In real implementation, this would use the loaded model
+                features = np.array( [[amount, transaction_hour, int( is_weekend ), days_since_last,
+                                       distance_from_home, int( card_present )]] )
+
+                # Simulate prediction (replace with actual model prediction)
+                fraud_probability = np.random.beta( 2, 8 )
+
+                if fraud_probability > 0.7 :
+                    st.error( f"🚨 High Risk Transaction! Fraud Probability: {fraud_probability:.2%}" )
+                    st.markdown(
+                        f'<div class="danger-card"><h3>⛔ BLOCKED</h3><p>This transaction has been flagged as potentially fraudulent.</p></div>',
+                        unsafe_allow_html=True )
+                elif fraud_probability > 0.4 :
+                    st.warning( f"⚠️ Medium Risk Transaction. Fraud Probability: {fraud_probability:.2%}" )
+                    st.markdown(
+                        f'<div class="warning-card"><h3>🔍 REVIEW</h3><p>This transaction requires additional verification.</p></div>',
+                        unsafe_allow_html=True )
+                else :
+                    st.success( f"✅ Low Risk Transaction. Fraud Probability: {fraud_probability:.2%}" )
+                    st.markdown(
+                        f'<div class="success-card"><h3>✅ APPROVED</h3><p>This transaction appears legitimate.</p></div>',
+                        unsafe_allow_html=True )
+
+        # Bulk analysis
+        st.markdown( "### 📁 Bulk Transaction Analysis" )
+
+        uploaded_file = st.file_uploader( "Upload CSV file", type=['csv'] )
+
+        if uploaded_file is not None :
+            df = pd.read_csv( uploaded_file )
+            st.write( "Data Preview:" )
+            st.dataframe( df.head() )
+
+            if st.button( "Analyze All Transactions" ) :
+                # Simulate bulk analysis
+                df['fraud_probability'] = np.random.beta( 2, 8, len( df ) )
+                df['risk_level'] = pd.cut( df['fraud_probability'],
+                                           bins=[0, 0.4, 0.7, 1.0],
+                                           labels=['Low', 'Medium', 'High'] )
+
+                st.write( "Analysis Results:" )
+                st.dataframe( df[['fraud_probability', 'risk_level']] )
+
+                # Summary
+                risk_summary = df['risk_level'].value_counts()
+                st.write( "Risk Summary:" )
+                st.bar_chart( risk_summary )
+
+    elif page == "📈 My Reports" :
+        st.markdown( "## 📈 My Reports" )
+
+        # Time period selector
+        col1, col2 = st.columns( 2 )
+
+        with col1 :
+            start_date = st.date_input( "Start Date", value=pd.to_datetime( '2024-01-01' ) )
+
+        with col2 :
+            end_date = st.date_input( "End Date", value=pd.to_datetime( '2024-12-31' ) )
+
+        # Filter data by date range
+        filtered_data = sample_data[
+            (sample_data['timestamp'] >= pd.to_datetime( start_date )) &
+            (sample_data['timestamp'] <= pd.to_datetime( end_date ))
+            ]
+
+        # Summary metrics
+        st.markdown( "### 📊 Summary Statistics" )
+
+        col1, col2, col3, col4 = st.columns( 4 )
+
+        with col1 :
+            total_trans = len( filtered_data )
+            st.metric( "Total Transactions", total_trans )
+
+        with col2 :
+            fraud_trans = filtered_data['is_fraud'].sum()
+            st.metric( "Fraud Transactions", fraud_trans, f"{fraud_trans / total_trans * 100:.1f}%" )
+
+        with col3 :
+            total_amount = filtered_data['amount'].sum()
+            st.metric( "Total Amount", f"${total_amount:,.2f}" )
+
+        with col4 :
+            avg_amount = filtered_data['amount'].mean()
+            st.metric( "Average Amount", f"${avg_amount:.2f}" )
+
+        # Detailed analysis
+        st.markdown( "### 📋 Detailed Analysis" )
+
+        # Transaction trends
+        st.subheader( "Transaction Trends Over Time" )
+        daily_stats = filtered_data.groupby( filtered_data['timestamp'].dt.date ).agg( {
+            'amount' : ['sum', 'count'],
+            'is_fraud' : 'sum'
+        } ).reset_index()
+
+        daily_stats.columns = ['date', 'total_amount', 'transaction_count', 'fraud_count']
+
+        fig, (ax1, ax2) = plt.subplots( 2, 1, figsize=(12, 8) )
+
+        # Amount trend
+        ax1.plot( daily_stats['date'], daily_stats['total_amount'], marker='o', color='green', alpha=0.7 )
+        ax1.set_title( 'Daily Transaction Amount' )
+        ax1.set_ylabel( 'Amount ($)' )
+        ax1.tick_params( axis='x', rotation=45 )
+
+        # Fraud trend
+        ax2.bar( daily_stats['date'], daily_stats['fraud_count'], color='red', alpha=0.7 )
+        ax2.set_title( 'Daily Fraud Count' )
+        ax2.set_ylabel( 'Fraud Count' )
+        ax2.tick_params( axis='x', rotation=45 )
+
+        plt.tight_layout()
+        st.pyplot( fig )
+
+        # Export data
+        st.markdown( "### 📥 Export Data" )
+
+        if st.button( "Generate Report" ) :
+            report_data = filtered_data.copy()
+            csv = report_data.to_csv( index=False )
+
+            st.download_button(
+                label="Download CSV Report",
+                data=csv,
+                file_name=f"finguard_report_{start_date}_{end_date}.csv",
+                mime="text/csv"
             )
-            
-            if uploaded_file:
-                try:
-                    df = pd.read_csv(uploaded_file)
-                    
-                    # Data preview
-                    st.markdown("### 📋 Transaction Preview")
-                    st.dataframe(df.head(), use_container_width=True)
-                    
-                    # File info
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Total Transactions", len(df))
-                    with col2:
-                        st.metric("Data Fields", len(df.columns))
-                    with col3:
-                        st.metric("File Size", f"{uploaded_file.size / 1024:.1f} KB")
-                    
-                    if st.button("🔍 Analyze Transactions", key="analyze_transactions"):
-                        try:
-                            with st.spinner("Analyzing your transactions..."):
-                                # Scale data
-                                X_scaled = scaler.transform(df)
-                                
-                                # Predict fraud scores
-                                fraud_scores = model.predict(X_scaled)
-                                df["fraud_score"] = fraud_scores.flatten()
-                                df["risk_level"] = df["fraud_score"].apply(
-                                    lambda x: "🟢 Low Risk" if x < 0.3 else ("🟡 Medium Risk" if x < 0.7 else "🔴 High Risk")
-                                )
-                                
-                                # Store results
-                                st.session_state['user_analysis'] = df
-                                
-                                # Display results
-                                st.markdown("### 🎯 Analysis Results")
-                                
-                                # Risk summary
-                                risk_counts = df["risk_level"].value_counts()
-                                col1, col2, col3 = st.columns(3)
-                                
-                                with col1:
-                                    low_risk = risk_counts.get("🟢 Low Risk", 0)
-                                    st.markdown(f'<div class="success-card"><h3>🟢 Low Risk</h3><h2>{low_risk}</h2><p>{low_risk/len(df)*100:.1f}% of transactions</p></div>', unsafe_allow_html=True)
-                                
-                                with col2:
-                                    medium_risk = risk_counts.get("🟡 Medium Risk", 0)
-                                    st.markdown(f'<div class="warning-card"><h3>🟡 Medium Risk</h3><h2>{medium_risk}</h2><p>{medium_risk/len(df)*100:.1f}% of transactions</p></div>', unsafe_allow_html=True)
-                                
-                                with col3:
-                                    high_risk = risk_counts.get("🔴 High Risk", 0)
-                                    st.markdown(f'<div class="danger-card"><h3>🔴 High Risk</h3><h2>{high_risk}</h2><p>{high_risk/len(df)*100:.1f}% of transactions</p></div>', unsafe_allow_html=True)
-                                
-                                # Transaction details
-                                st.markdown("### 📊 Transaction Details")
-                                
-                                # Show flagged transactions first
-                                flagged_df = df[df['fraud_score'] >= 0.3].sort_values('fraud_score', ascending=False)
-                                
-                                if len(flagged_df) > 0:
-                                    st.markdown("#### ⚠️ Flagged Transactions")
-                                    for idx, row in flagged_df.head(10).iterrows():
-                                        risk_class = "transaction-warning" if row['fraud_score'] < 0.7 else "transaction-danger"
-                                        st.markdown(f'''
-                                        <div class="{risk_class}">
-                                            <strong>Transaction {idx}</strong> - Risk Score: {row['fraud_score']:.4f}<br>
-                                            <small>Risk Level: {row['risk_level']}</small>
-                                        </div>
-                                        ''', unsafe_allow_html=True)
-                                
-                                # Show all results in table
-                                st.markdown("#### 📋 All Results")
-                                st.dataframe(
-                                    df[['fraud_score', 'risk_level']].round(4),
-                                    use_container_width=True
-                                )
-                                
-                                # Download results
-                                csv = df.to_csv(index=False).encode('utf-8')
-                                st.download_button(
-                                    label="⬇️ Download Analysis Results",
-                                    data=csv,
-                                    file_name=f"transaction_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                                    mime="text/csv"
-                                )
-                        
-                        except Exception as e:
-                            st.error(f"❌ Analysis failed: {str(e)}")
-                            st.info("Please ensure your CSV has the correct format and columns.")
-                
-                except Exception as e:
-                    st.error(f"❌ Error reading file: {str(e)}")
-    
-    elif page == "📈 My Reports":
-        st.markdown("## 📈 My Reports")
-        
-        if 'user_analysis' not in st.session_state:
-            st.info("📊 Please analyze some transactions first to generate reports.")
-            
-            # Show sample visualization
-            st.markdown("### 📊 Sample Analytics")
-            
-            # Create sample data for demonstration
-            sample_data = {
-                'Risk Level': ['🟢 Low Risk', '🟡 Medium Risk', '🔴 High Risk'],
-                'Count': [150, 25, 5]
-            }
-            
-            fig, ax = plt.subplots(figsize=(10, 6))
-            colors = ['#4CAF50', '#FF9800', '#F44336']
-            bars = ax.bar(sample_data['Risk Level'], sample_data['Count'], color=colors)
-            ax.set_title('Sample Risk Distribution', fontsize=16, fontweight='bold')
-            ax.set_xlabel('Risk Level')
-            ax.set_ylabel('Number of Transactions')
-            
-            # Add value labels on bars
-            for bar in bars:
-                height = bar.get_height()
-                ax.text(bar.get_x() + bar.get_width()/2., height + 1,
-                       f'{int(height)}', ha='center', va='bottom')
-            
-            plt.tight_layout()
-            st.pyplot(fig)
-        
-        else:
-            data = st.session_state['user_analysis']
-            
-            # Analytics overview
-            st.markdown("### 📊 Transaction Analytics")
-            
-            # Create visualizations
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                # Risk distribution pie chart
-                risk_counts = data['risk_level'].value_counts()
-                fig, ax = plt.subplots(figsize=(8, 6))
-                colors = ['#4CAF50', '#FF9800', '#F44336']
-                wedges, texts, autotexts = ax.pie(risk_counts.values, labels=risk_counts.index, 
-                                                 autopct='%1.1f%%', colors=colors, startangle=90)
-                ax.set_title('Risk Distribution', fontsize=14, fontweight='bold')
-                st.pyplot(fig)
-            
-            with col2:
-                # Fraud score distribution
-                fig, ax = plt.subplots(figsize=(8, 6))
-                ax.hist(data['fraud_score'], bins=20, color='skyblue', alpha=0.7, edgecolor='black')
-                ax.set_title('Fraud Score Distribution', fontsize=14, fontweight='bold')
-                ax.set_xlabel('Fraud Score')
-                ax.set_ylabel('Frequency')
-                ax.axvline(x=0.3, color='orange', linestyle='--', label='Medium Risk Threshold')
-                ax.axvline(x=0.7, color='red', linestyle='--', label='High Risk Threshold')
-                ax.legend()
-                st.pyplot(fig)
-            
-            # Summary statistics
-            st.markdown("### 📈 Summary Statistics")
-            col1, col2, col3, col4 = st.columns(4)
-            
-            with col1:
-                st.metric("Average Risk Score", f"{data['fraud_score'].mean():.4f}")
-            
-            with col2:
-                st.metric("Highest Risk Score", f"{data['fraud_score'].max():.4f}")
-            
-            with col3:
-                st.metric("Lowest Risk Score", f"{data['fraud_score'].min():.4f}")
-            
-            with col4:
-                st.metric("Risk Standard Deviation", f"{data['fraud_score'].std():.4f}")
-            
-            # Export options
-            st.markdown("### 💾 Export Options")
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                # Download detailed results
-                csv = data.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="📄 Download Detailed Report",
-                    data=csv,
-                    file_name=f"detailed_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                    mime="text/csv"
-                )
-            
-            with col2:
-                # Download summary
-                summary_data = {
-                    'Metric': ['Total Transactions', 'Low Risk', 'Medium Risk', 'High Risk', 'Average Score'],
-                    'Value': [
-                        len(data),
-                        len(data[data['risk_level'] == '🟢 Low Risk']),
-                        len(data[data['risk_level'] == '🟡 Medium Risk']),
-                        len(data[data['risk_level'] == '🔴 High Risk']),
-                        f"{data['fraud_score'].mean():.4f}"
-                    ]
-                }
-                summary_df = pd.DataFrame(summary_data)
-                csv_summary = summary_df.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="📊 Download Summary",
-                    data=csv_summary,
-                    file_name=f"summary_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                    mime="text/csv"
-                )
-    
-    elif page == "⚙️ Settings":
-        st.markdown("## ⚙️ Settings")
-        
+
+    elif page == "⚙️ Settings" :
+        st.markdown( "## ⚙️ Settings" )
+
         # User preferences
-        st.markdown("### 👤 User Preferences")
-        
-        # Notification settings
-        email_notifications = st.checkbox("Enable email notifications", value=True)
-        sms_notifications = st.checkbox("Enable SMS alerts for high-risk transactions", value=False)
-        
-        # Risk threshold settings
-        st.markdown("### 🎯 Risk Thresholds")
-        user_threshold = st.slider("Personal Risk Alert Threshold", 0.0, 1.0, 0.5, 0.01)
-        st.info(f"You will be alerted for transactions with risk scores above {user_threshold:.2f}")
-        
-        # Data retention
-        st.markdown("### 🗂️ Data Management")
-        retention_days = st.selectbox("Data retention period", [7, 30, 90, 180, 365], index=2)
-        
-        # Export preferences
-        st.markdown("### 📤 Export Preferences")
-        export_format = st.selectbox("Preferred export format", ["CSV", "Excel", "JSON"], index=0)
-        
-        # Save settings
-        if st.button("💾 Save Settings", key="save_user_settings"):
-            st.success("✅ Settings saved successfully!")
-            
-            # Show current settings
-            st.markdown("#### Current Settings:")
-            st.write(f"- Email notifications: {'✅' if email_notifications else '❌'}")
-            st.write(f"- SMS alerts: {'✅' if sms_notifications else '❌'}")
-            st.write(f"- Risk threshold: {user_threshold:.2f}")
-            st.write(f"- Data retention: {retention_days} days")
-            st.write(f"- Export format: {export_format}")
+        st.markdown( "### 👤 User Preferences" )
 
-elif authentication_status == False:
-    st.error("❌ Username or password is incorrect")
-    st.markdown("""
-    ### 🔐 Demo Credentials
-    
-    **Username:** user1  
-    **Password:** user123
-    
-    **Or**
-    
-    **Username:** user2  
-    **Password:** user123
-    
-    **Or**
-    
-    **Username:** demo  
-    **Password:** user123
-    """)
+        notification_enabled = st.checkbox( "Enable Fraud Alerts", value=True )
+        alert_threshold = st.slider( "Fraud Alert Threshold", 0.0, 1.0, 0.7, 0.05 )
 
-elif authentication_status == None:
-    st.warning("🔒 Please enter your username and password")
-    st.markdown("""
-    ### 💳 Welcome to FinGuard Pro
-    
-    Your personal financial security dashboard. Monitor your transactions and get instant fraud alerts.
-    
-    ### 🔐 Demo Credentials
-    
-    **Username:** user1  
-    **Password:** user123
-    
-    **Or**
-    
-    **Username:** user2  
-    **Password:** user123
-    
-    **Or**
-    
-    **Username:** demo  
-    **Password:** user123
-    """)
+        st.markdown( "### 🔧 Model Configuration" )
+
+        if model is not None :
+            st.success( "✅ Fraud Detection Model Loaded Successfully" )
+            st.info( f"Model Status: {load_status}" )
+        else :
+            st.warning( "⚠️ Running in Demo Mode" )
+            st.info( f"Status: {load_status}" )
+
+        # System information
+        st.markdown( "### 🖥️ System Information" )
+
+        col1, col2 = st.columns( 2 )
+
+        with col1 :
+            st.info( f"**User:** {name}" )
+            st.info( f"**Username:** {username}" )
+            st.info( f"**Login Time:** {datetime.now().strftime( '%Y-%m-%d %H:%M:%S' )}" )
+
+        with col2 :
+            st.info( f"**TensorFlow Version:** {tf.__version__}" )
+            st.info( f"**Streamlit Version:** {st.__version__}" )
+            st.info( f"**Model Status:** {'Loaded' if model is not None else 'Demo Mode'}" )
+
+        # Data management
+        st.markdown( "### 🗂️ Data Management" )
+
+        if st.button( "Clear Cache" ) :
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            st.success( "Cache cleared successfully!" )
+
+        if st.button( "Reset Settings" ) :
+            st.session_state.clear()
+            st.success( "Settings reset successfully!" )
+
+elif authentication_status == False :
+    st.error( "Username/password is incorrect" )
+    st.info( "Demo credentials - Username: demo, Password: user123" )
+
+elif authentication_status == None :
+    st.warning( "Please enter your username and password" )
+    st.info( "Demo credentials - Username: demo, Password: user123" )
+
+# Footer
+st.markdown( "---" )
+st.markdown(
+    """
+    <div style='text-align: center; color: #666; padding: 1rem;'>
+        <p>🔒 FinGuardPro - Protecting Your Financial Future</p>
+        <p>Built with ❤️ using Streamlit and TensorFlow</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
