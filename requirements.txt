@@ -1,0 +1,12 @@
+streamlit
+streamlit-authenticator
+tensorflow
+pandas
+numpy
+scikit-learn
+matplotlib
+shap
+fpdf
+joblib
+flask
+PyYAML
