@@ -81,36 +81,70 @@ After training, it will save:
 ### 2️⃣ Run Admin Dashboard
 
 ```bash
-streamlit run dashboards/admin_dashboard.py
+streamlit run dasboards/admin_dashboard.py
+```
+
+**OR use the launcher script:**
+
+```bash
+python run_dashboards.py admin
 ```
 
 **Login Credentials:**
-- Username: `admin1`
+- Username: `admin`
 - Password: `admin123`
 
-Features:
-- Upload transaction CSV
-- Predict fraud score
-- SHAP visualization
-- Download PDF report
-- Generate batch reports as ZIP
+**OR**
+
+- Username: `compliance`
+- Password: `admin123`
+
+**Features:**
+- Modern, responsive UI with gradient backgrounds
+- Multi-page dashboard navigation
+- Upload and analyze transaction CSV files
+- Real-time fraud detection with risk scoring
+- Advanced analytics and visualizations
+- Export results to CSV
+- System status monitoring
+- Settings configuration
 
 ---
 
 ### 3️⃣ Run User Dashboard
 
 ```bash
-streamlit run dashboards/user_dashboard.py
+streamlit run dasboards/user_dashboard.py
+```
+
+**OR use the launcher script:**
+
+```bash
+python run_dashboards.py user
 ```
 
 **Login Credentials:**
 - Username: `user1`
 - Password: `user123`
 
-Features:
-- Upload CSV
-- View fraud scores
-- Download personal transaction report
+**OR**
+
+- Username: `user2`
+- Password: `user123`
+
+**OR**
+
+- Username: `demo`
+- Password: `user123`
+
+**Features:**
+- Personal financial security dashboard
+- Upload and analyze personal transactions
+- Risk assessment with visual indicators
+- Transaction analytics and charts
+- Export personal reports
+- Security tips and recommendations
+- Customizable user settings
 
 ---
 
