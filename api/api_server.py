@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from flask_cors import CORS
 import pandas as pd
 import numpy as np
 import joblib
@@ -28,6 +29,9 @@ db = SQLAlchemy( app )
 login_manager = LoginManager()
 login_manager.init_app( app )
 login_manager.login_view = 'login'
+
+# Enable CORS for all domains on all routes
+CORS(app)
 
 # Ensure upload folder exists
 os.makedirs( app.config['UPLOAD_FOLDER'], exist_ok=True )
@@ -206,6 +210,35 @@ def login () :
         } )
 
     return jsonify( {'error' : 'Invalid credentials'} ), 401
+
+
+# Simple validation endpoint for dashboards
+@app.route( '/api/auth/validate', methods=['POST'] )
+def validate_credentials () :
+    data = request.get_json()
+    username = data.get( 'username' )
+    password = data.get( 'password' )
+
+    if not username or not password :
+        return jsonify( {'valid' : False, 'error' : 'Username and password required'} ), 400
+
+    user = User.query.filter_by( username=username ).first()
+
+    if user and check_password_hash( user.password_hash, password ) :
+        user.last_login = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify( {
+            'valid' : True,
+            'user' : {
+                'id' : user.id,
+                'username' : user.username,
+                'name' : user.name,
+                'role' : user.role
+            }
+        } )
+
+    return jsonify( {'valid' : False, 'error' : 'Invalid credentials'} ), 401
 
 
 @app.route( '/api/auth/logout', methods=['POST'] )
@@ -621,16 +654,34 @@ def init_db () :
             )
             db.session.add( admin_user )
 
-        # Create default demo user if doesn't exist
-        if not User.query.filter_by( username='demo' ).first() :
-            demo_user = User(
-                username='demo',
-                email='demo@finguardpro.com',
-                password_hash=generate_password_hash( 'user123' ),
-                name='Demo User',
-                role='user'
+        # Create default compliance user if doesn't exist
+        if not User.query.filter_by( username='compliance' ).first() :
+            compliance_user = User(
+                username='compliance',
+                email='compliance@finguardpro.com',
+                password_hash=generate_password_hash( 'admin123' ),
+                name='Compliance Officer',
+                role='compliance'
             )
-            db.session.add( demo_user )
+            db.session.add( compliance_user )
+
+        # Create default demo users if they don't exist
+        demo_users = [
+            {'username': 'demo', 'email': 'demo@finguardpro.com', 'name': 'Demo User', 'password': 'user123'},
+            {'username': 'user1', 'email': 'user1@finguardpro.com', 'name': 'John Doe', 'password': 'user123'},
+            {'username': 'user2', 'email': 'user2@finguardpro.com', 'name': 'Jane Smith', 'password': 'user123'}
+        ]
+
+        for user_data in demo_users :
+            if not User.query.filter_by( username=user_data['username'] ).first() :
+                demo_user = User(
+                    username=user_data['username'],
+                    email=user_data['email'],
+                    password_hash=generate_password_hash( user_data['password'] ),
+                    name=user_data['name'],
+                    role='user'
+                )
+                db.session.add( demo_user )
 
         db.session.commit()
         print( "✅ Database initialized successfully" )
