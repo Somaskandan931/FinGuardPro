@@ -9,4 +9,8 @@ shap
 fpdf
 joblib
 flask
+flask-cors
+flask-login
+flask-sqlalchemy
 PyYAML
+requests
