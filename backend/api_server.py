@@ -4,8 +4,7 @@ import traceback
 import pickle
 import joblib
 import os
-
-from modules.rule_engine import run_rule_engine
+from modules.transaction_screening import run_rule_engine
 from modules.name_screening import run_name_screening
 from modules.decision_engine import combine_decision
 from reports.report_utils import generate_fraud_report
