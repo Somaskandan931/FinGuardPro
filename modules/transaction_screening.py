@@ -48,7 +48,38 @@ def run_transaction_screening(transactions):
         if tid in round_trip_ids:
             reasons.append("Round-Tripping")
         if tid in repeated_ids:
-            reasons.append("Repeated Recipient")
+            reasons.append("import pandas as pd
+
+def run_rule_engine(transactions_df):
+    """
+    Flags transactions based on logic-based rules:
+    - Structuring: multiple transactions just below threshold
+    - Round-tripping: sender and receiver same over time
+    - Repetitive: same amount repeated
+    """
+    results = []
+
+    for _, row in transactions_df.iterrows():
+        tid = row.get("transaction_id")
+        amount = row.get("amount", 0)
+        sender = row.get("sender_id", "")
+        receiver = row.get("receiver_id", "")
+
+        # Rules
+        structuring = amount >= 9500 and amount < 10000
+        round_tripping = sender == receiver
+        repetitive = False  # placeholder (use historical tracking)
+
+        results.append({
+            "transaction_id": tid,
+            "structuring_flag": structuring,
+            "round_tripping_flag": round_tripping,
+            "repetitive_flag": repetitive,
+            "rule_flag": structuring or round_tripping or repetitive
+        })
+
+    return pd.DataFrame(results)
+ Recipient")
         if tid in odd_hour_ids:
             reasons.append("Odd Hour Activity")
 

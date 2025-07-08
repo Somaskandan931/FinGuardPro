@@ -1,6 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+*.zip
+
+# Model files
 *.h5
 *.pkl
-*.zip
+
+# Reports and outputs
 *.pdf
-__pycache__/
-.env
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# IDE/editor configs
+.vscode/
+.idea/
+
+# Python cache files
+*.pyc
