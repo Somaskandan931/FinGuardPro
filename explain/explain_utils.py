@@ -4,6 +4,7 @@ import os
 import pandas as pd
 from typing import Optional, Dict, List, Union
 
+
 def preprocess_input_for_shap(
     input_df: pd.DataFrame,
     scaler,
@@ -56,7 +57,10 @@ def explain_transaction(
     X = preprocess_input_for_shap(input_df, scaler, encoders, feature_columns)
 
     try:
-        explainer = shap.TreeExplainer(model, data=background_data) if background_data is not None else shap.TreeExplainer(model)
+        explainer = (
+            shap.TreeExplainer(model, data=background_data)
+            if background_data is not None else shap.TreeExplainer(model)
+        )
     except Exception as e:
         print(f"[WARN] TreeExplainer failed with error: {e}. Falling back to KernelExplainer.")
         explainer = shap.KernelExplainer(model.predict, shap.sample(X, 100))
@@ -64,13 +68,14 @@ def explain_transaction(
     shap_values = explainer.shap_values(X)
     saved_files = []
 
-    for i in range(min(len(X), top_n)):
+    max_plots = min(len(X), top_n)
+    for i in range(max_plots):
         tid = transaction_ids[i] if transaction_ids and i < len(transaction_ids) else f"tx_{i}"
         plt.figure(figsize=(8, 5))
 
         # Handle multiclass shap_values (list) vs single-class
         if isinstance(shap_values, list):
-            vals = shap_values[1][i]
+            vals = shap_values[1][i]  # Typically class 1 for binary classifiers
             base_value = explainer.expected_value[1]
         else:
             vals = shap_values[i]
@@ -105,12 +110,18 @@ def explain_summary_plot(
     X = preprocess_input_for_shap(input_df, scaler, encoders, feature_columns)
 
     try:
-        explainer = shap.TreeExplainer(model, data=background_data) if background_data is not None else shap.TreeExplainer(model)
+        explainer = (
+            shap.TreeExplainer(model, data=background_data)
+            if background_data is not None else shap.TreeExplainer(model)
+        )
     except Exception as e:
         print(f"[WARN] TreeExplainer failed with error: {e}. Falling back to KernelExplainer.")
         explainer = shap.KernelExplainer(model.predict, shap.sample(X, 100))
 
     shap_values = explainer.shap_values(X)
+
+    # Create output directory if needed
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     plt.figure(figsize=(12, 8))
     shap.summary_plot(shap_values, X, show=False)

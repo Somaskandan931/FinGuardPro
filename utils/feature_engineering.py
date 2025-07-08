@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import sys
 
 def engineer_features(df):
     df = df.copy()
@@ -11,6 +12,7 @@ def engineer_features(df):
     df['hour'] = df['timestamp'].dt.hour
     df['day_of_week'] = df['timestamp'].dt.dayofweek
     df['is_night'] = df['hour'].apply(lambda x: 1 if (x < 6 or x > 22) else 0)
+    df['is_weekend'] = df['day_of_week'].apply(lambda x: 1 if x >= 5 else 0)
 
     # --- Amount-based Features ---
     df['log_amount'] = np.log1p(df['transaction_amount'])
@@ -18,7 +20,8 @@ def engineer_features(df):
 
     # --- Sender-Receiver Behavioral Features ---
     df['sender_receiver_combo'] = df['sender_id'].astype(str) + "_" + df['recipient_id'].astype(str)
-    df['is_new_receiver'] = ~df.duplicated(subset=['sender_id', 'recipient_id']).astype(int)
+    # is_new_receiver = 1 if this sender-recipient pair appears for the first time, else 0
+    df['is_new_receiver'] = (~df.duplicated(subset=['sender_id', 'recipient_id'])).astype(int)
 
     # --- Sender Activity Features ---
     df['sender_txn_count'] = df.groupby('sender_id')['transaction_id'].transform('count')
@@ -31,22 +34,21 @@ def engineer_features(df):
 
     return df
 
-if __name__ == "__main__":
-    INPUT_PATH = "C:/Users/somas/PycharmProjects/FinGuardPro/data/synthetic_dataset_large.csv"
-    OUTPUT_PATH = "C:/Users/somas/PycharmProjects/FinGuardPro/data/engineered_dataset_large.csv"
-
+def main(input_path, output_path):
     print("📂 Loading raw dataset...")
-    df = pd.read_csv(INPUT_PATH)
+    df = pd.read_csv(input_path)
     print(f"✅ Loaded {len(df)} rows")
     print(f"📄 Columns in file: {df.columns.tolist()}")
 
-    # --- Rename columns for consistency ---
+    # Rename columns for consistency only if they exist
     rename_map = {
         'amount': 'transaction_amount'
     }
-    df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns}, inplace=True)
+    for old_col, new_col in rename_map.items():
+        if old_col in df.columns and new_col not in df.columns:
+            df.rename(columns={old_col: new_col}, inplace=True)
 
-    # --- Validate required columns ---
+    # Validate required columns
     required_cols = ['transaction_id', 'timestamp', 'sender_id', 'recipient_id', 'transaction_amount']
     missing = [col for col in required_cols if col not in df.columns]
     if missing:
@@ -55,6 +57,19 @@ if __name__ == "__main__":
     print("🛠️ Engineering features...")
     df_engineered = engineer_features(df)
 
-    print(f"💾 Saving engineered dataset to {OUTPUT_PATH}")
-    df_engineered.to_csv(OUTPUT_PATH, index=False)
+    print(f"💾 Saving engineered dataset to {output_path}")
+    df_engineered.to_csv(output_path, index=False)
     print("✅ Feature engineering complete.")
+
+if __name__ == "__main__":
+    # Default paths
+    input_path = "C:/Users/somas/PycharmProjects/FinGuardPro/data/synthetic_dataset_large.csv"
+    output_path = "C:/Users/somas/PycharmProjects/FinGuardPro/data/engineered_dataset_large.csv"
+
+    # Allow command-line override for flexibility
+    if len(sys.argv) > 1:
+        input_path = sys.argv[1]
+    if len(sys.argv) > 2:
+        output_path = sys.argv[2]
+
+    main(input_path, output_path)

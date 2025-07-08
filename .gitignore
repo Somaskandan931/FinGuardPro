@@ -30,3 +30,6 @@ build/
 
 # Python cache files
 *.pyc
+
+# Ignore all CSV files
+*.csv

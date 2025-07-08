@@ -1,0 +1,4 @@
+transaction_id,transaction_amount,sender_name,sender_risk_profile,sender_account_type,recipient_name,recipient_account_type,device_type,merchant_category,transaction_type,hour_of_day,day_of_week,location
+TX1001,4250.75,John Smith,Medium,Savings,Alice Tan,Current,Mobile,Retail,Payment,14,1,Singapore
+TX1002,15999.99,Emily Chen,High,Current,Bob Lee,Savings,Desktop,Food,Transfer,22,5,New York
+TX1003,300.0,Karen Foo,Low,Credit,,,Tablet,Utilities,Withdrawal,9,3,London
