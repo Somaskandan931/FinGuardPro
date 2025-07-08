@@ -10,8 +10,6 @@ from modules.name_screening import run_name_screening
 from modules.decision_engine import combine_decision
 from explain.explain_utils import explain_transaction, explain_summary_plot
 from auth.auth import login, token_required
-
-# Import your updated generate_fraud_report here (adjust path if needed)
 from reports.report_utils import generate_fraud_report
 
 app = Flask(__name__)
@@ -19,7 +17,7 @@ app = Flask(__name__)
 # ------------------- MODEL PATHS ----------------------
 
 BASE_MODEL_PATH = "C:/Users/somas/PycharmProjects/FinGuardPro/models"
-MODEL_PATH = os.path.join(BASE_MODEL_PATH, "stacked_meta_model.pkl")
+MODEL_PATH = os.path.join(BASE_MODEL_PATH, "xgboost_tuned_model.pkl")
 SCALER_PATH = os.path.join(BASE_MODEL_PATH, "scaler.pkl")
 ENCODERS_PATH = os.path.join(BASE_MODEL_PATH, "label_encoders.pkl")
 
@@ -41,27 +39,47 @@ try:
     with open(ENCODERS_PATH, "rb") as f:
         label_encoders = pickle.load(f)
     categorical_columns = list(label_encoders.keys())
+
+    # Hardcoded feature columns (must exactly match scaler & model training)
+    feature_columns = [
+        'sender_balance_before',
+        'sender_age',
+        'sender_suspicious_name',
+        'recipient_balance_before',
+        'recipient_suspicious_name',
+        'transaction_amount',
+        'hour_of_day',
+        'day_of_week',
+        'is_weekend',
+        'txns_last_hour',
+        'txns_last_day',
+        'txns_last_week',
+        'amount_to_balance_ratio',
+        'amount_vs_channel_limit_ratio',
+        'is_round_amount',
+        'hour',
+        'is_night',
+        'log_amount',
+        'is_high_value',
+        'is_new_receiver',
+        'sender_txn_count',
+        'amount_to_avg_ratio',
+        'sender_id_encoded',
+        'sender_account_type_encoded',
+        'sender_risk_profile_encoded',
+        'recipient_id_encoded',
+        'recipient_account_type_encoded',
+        'transaction_type_encoded',
+        'device_type_encoded',
+        'location_encoded',
+        'merchant_category_encoded'
+    ]
+
+    print(f"✅ Loaded model components with {len(feature_columns)} feature columns")
 except Exception as e:
     print(f"❌ Error loading model components: {e}")
     raise
 
-# Feature columns used for model input
-feature_columns = [
-    'amount_to_avg_ratio', 'amount_to_balance_ratio', 'amount_vs_channel_limit_ratio',
-    'day_of_week', 'device_type_encoded', 'hour', 'hour_of_day', 'is_high_value',
-    # Note: excluding these 4 problematic features from model features list:
-    # 'is_impossible_travel', 'is_round_trip', 'round_trip_chain_id', 'round_trip_position',
-    'is_new_receiver', 'is_night', 'is_round_amount',
-    'is_weekend', 'location_encoded', 'log_amount',
-    'merchant_category_encoded', 'recipient_account_type_encoded', 'recipient_balance_before',
-    'recipient_id_encoded', 'recipient_suspicious_name',
-    'sender_account_type_encoded', 'sender_age',
-    'sender_balance_before', 'sender_id_encoded', 'sender_risk_profile_encoded',
-    'sender_suspicious_name', 'sender_txn_count', 'transaction_amount',
-    'transaction_type_encoded', 'txns_last_day', 'txns_last_hour', 'txns_last_week'
-]
-
-# These 4 features exist in the DataFrame but cause issues if sent to the model
 EXCLUDE_FROM_MODEL = ['is_impossible_travel', 'is_round_trip', 'round_trip_chain_id', 'round_trip_position']
 
 # ------------------- HELPERS ----------------------
@@ -84,6 +102,8 @@ def ensure_features_exist(df, feature_cols):
 
 def preprocess_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
+
+    # Encode categorical columns safely
     for col in categorical_columns:
         if col in df.columns:
             le = label_encoders[col]
@@ -91,18 +111,23 @@ def preprocess_features(df: pd.DataFrame) -> pd.DataFrame:
         else:
             df[col + "_encoded"] = -1
 
+    # Drop original categorical columns
     df.drop(columns=categorical_columns, inplace=True, errors='ignore')
 
-    # Drop problematic features before selecting features for model
+    # Drop excluded columns not used for model input
     df.drop(columns=EXCLUDE_FROM_MODEL, inplace=True, errors='ignore')
 
-    # Add missing feature columns
+    # Add missing features as zeros
     for col in feature_columns:
         if col not in df.columns:
             df[col] = 0
 
-    X = df[feature_columns]
-    return scaler.transform(X)
+    # Reorder columns to match exactly the feature_columns order
+    df = df[feature_columns]
+
+    # Scale features (expects exact columns and order)
+    X_scaled = scaler.transform(df)
+    return X_scaled
 
 def determine_risk_level(score: float) -> str:
     if score >= 0.8:
@@ -126,14 +151,17 @@ def predict():
         if not input_json:
             return jsonify({"error": "Empty or invalid input."}), 400
 
+        # Create DataFrame from input JSON
         transactions_df = pd.DataFrame([input_json]) if isinstance(input_json, dict) else pd.DataFrame(input_json)
 
-        # Make sure all model features exist (including the excluded ones, so full data intact)
+        # Ensure all required features exist (including excluded for full logic)
         transactions_df = ensure_features_exist(transactions_df, feature_columns + EXCLUDE_FROM_MODEL)
 
+        # Run rule engine and name screening
         rules = run_rule_engine(transactions_df)
         names = run_name_screening(transactions_df)
 
+        # Run model prediction with error handling
         try:
             X = preprocess_features(transactions_df)
             preds = model.predict_proba(X)[:, 1]
@@ -141,14 +169,17 @@ def predict():
             print(f"❌ Model prediction error: {e}")
             preds = [0.0] * len(transactions_df)
 
+        # Ensure transaction_id present for reporting
         if "transaction_id" not in transactions_df.columns:
             transactions_df["transaction_id"] = [f"tx_{i}" for i in range(len(transactions_df))]
 
+        # Prepare model predictions DataFrame
         model_preds = pd.DataFrame({
             "transaction_id": transactions_df["transaction_id"],
             "fraud_score": preds
         })
 
+        # Combine decisions (model + rules + name screening)
         final_df = combine_decision(transactions_df, model_preds, rules, names)
 
         responses = []
@@ -157,6 +188,7 @@ def predict():
             fraud_score = row.get("fraud_score", 0.0)
             risk_level = determine_risk_level(fraud_score)
 
+            # Generate PDF fraud report
             report_path = generate_fraud_report(
                 txn_data=txn_data,
                 fraud_score=fraud_score,
@@ -164,12 +196,13 @@ def predict():
                 save_path=os.path.join(REPORT_OUTPUT_DIR, f"fraud_report_{txn_data.get('transaction_id', idx)}.pdf")
             )
 
+            # Generate SHAP explanation plots
             shap_paths = explain_transaction(
                 model=model,
                 input_df=transactions_df.iloc[[idx]],
                 scaler=scaler,
                 encoders=label_encoders,
-                feature_columns=feature_columns + EXCLUDE_FROM_MODEL,  # full features for explanation
+                feature_columns=feature_columns,
                 transaction_ids=[txn_data.get("transaction_id", f"tx_{idx}")],
                 output_dir=SHAP_OUTPUT_DIR
             )
@@ -180,13 +213,14 @@ def predict():
             row_dict["shap_plot"] = f"/explain/shap_outputs/{os.path.basename(shap_paths[0])}" if shap_paths else None
             responses.append(row_dict)
 
+        # If batch prediction, include SHAP summary plot
         if len(transactions_df) > 1:
             summary_path = explain_summary_plot(
                 model=model,
                 input_df=transactions_df,
                 scaler=scaler,
                 encoders=label_encoders,
-                feature_columns=feature_columns + EXCLUDE_FROM_MODEL,
+                feature_columns=feature_columns,
                 output_path=os.path.join(OUTPUT_BASE_DIR, "shap_summary.png")
             )
             return jsonify({
@@ -194,6 +228,7 @@ def predict():
                 "shap_summary_plot": "/output/shap_summary.png"
             }), 200
 
+        # Single prediction response
         return jsonify(responses[0] if len(responses) == 1 else responses), 200
 
     except Exception as e:

@@ -15,6 +15,8 @@ def preprocess_input_for_shap(
     Preprocess input data by encoding categorical columns and scaling features,
     preparing it for SHAP explanation.
     """
+    EXCLUDE_FROM_MODEL = ['is_impossible_travel', 'is_round_trip', 'round_trip_chain_id', 'round_trip_position']
+
     df = input_df.copy()
 
     # Encode categorical columns, mapping unseen categories to -1
@@ -30,8 +32,21 @@ def preprocess_input_for_shap(
     # Drop original categorical columns after encoding
     df.drop(columns=list(encoders.keys()), inplace=True, errors='ignore')
 
-    # Select feature columns and apply scaler
+    # DROP the excluded columns here to avoid scaler errors
+    df.drop(columns=EXCLUDE_FROM_MODEL, inplace=True, errors='ignore')
+
+    # Ensure all feature columns are present, add missing with 0
+    for col in feature_columns:
+        if col not in df.columns:
+            df[col] = 0
+
+    # Reorder columns explicitly to match training feature order before scaling
     X = df[feature_columns].copy()
+
+    # Uncomment the following line to debug column order:
+    # print("[DEBUG] Columns before scaling:", X.columns.tolist())
+
+    # Scale features
     X_scaled = pd.DataFrame(scaler.transform(X), columns=feature_columns, index=X.index)
     return X_scaled
 
