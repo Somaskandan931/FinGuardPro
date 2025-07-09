@@ -33,3 +33,6 @@ build/
 
 # Ignore all CSV files
 *.csv
+
+#Authentication
+auth/
