@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Load your dataset as in preprocessing
-df = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/engineered_dataset_large.csv")
+df = pd.read_csv( "//data/engineered_dataset_large.csv" )
 
 # Drop the columns you specified
 drop_cols = [

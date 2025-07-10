@@ -10,8 +10,8 @@ models = {
     "CatBoost": "C:/Users/somas/PycharmProjects/FinGuardPro/models/catboost_best_model.pkl"
 }
 
-X_test = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/X_test.csv")
-y_test = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/y_test.csv").values.ravel()
+X_test = pd.read_csv( "//data/X_test.csv" )
+y_test = pd.read_csv( "//data/y_test.csv" ).values.ravel()
 
 for name, path in models.items():
     model = joblib.load(path)

@@ -8,8 +8,8 @@ import joblib
 
 def objective(trial):
     # Load data
-    X = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/X_train.csv")
-    y = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/y_train.csv").values.ravel()
+    X = pd.read_csv( "//data/X_train.csv" )
+    y = pd.read_csv( "//data/y_train.csv" ).values.ravel()
 
     # Categorical features (if any)
     cat_features = []  # Update this if you have categorical features
@@ -59,8 +59,8 @@ if __name__ == "__main__":
     # 🔁 Retrain final model on full training data with best params
     print("Training final model on full data...")
 
-    X = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/X_train.csv")
-    y = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/y_train.csv").values.ravel()
+    X = pd.read_csv( "//data/X_train.csv" )
+    y = pd.read_csv( "//data/y_train.csv" ).values.ravel()
     cat_features = []  # Same as above
 
     best_params = study.best_params
@@ -76,5 +76,5 @@ if __name__ == "__main__":
     final_model.fit(Pool(X, y, cat_features=cat_features))
 
     # 💾 Save the final model
-    joblib.dump(final_model, "C:/Users/somas/PycharmProjects/FinGuardPro/models/catboost_tuned_model.pkl")
+    joblib.dump( final_model, "//models/catboost_tuned_model.pkl" )
     print("✅ Final tuned CatBoost model saved as 'catboost_tuned_model.pkl'")

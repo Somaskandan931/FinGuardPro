@@ -6,8 +6,8 @@ from sklearn.metrics import roc_auc_score
 import joblib
 
 def objective(trial):
-    X = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/X_train.csv")
-    y = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/y_train.csv").values.ravel()
+    X = pd.read_csv( "//data/X_train.csv" )
+    y = pd.read_csv( "//data/y_train.csv" ).values.ravel()
 
     params = {
         'objective': 'binary:logistic',
@@ -50,8 +50,8 @@ def main():
     print("🏆 Best hyperparameters:", study.best_params)
 
     # Train final model on full data
-    X = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/X_train.csv")
-    y = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/y_train.csv").values.ravel()
+    X = pd.read_csv( "//data/X_train.csv" )
+    y = pd.read_csv( "//data/y_train.csv" ).values.ravel()
 
     best_params = study.best_params
     best_params.update({
@@ -67,7 +67,7 @@ def main():
     final_model = xgb.XGBClassifier(**best_params, n_estimators=300)
     final_model.fit(X, y)
 
-    joblib.dump(final_model, "C:/Users/somas/PycharmProjects/FinGuardPro/models/xgboost_tuned_model.pkl")
+    joblib.dump( final_model, "//models/xgboost_tuned_model.pkl" )
     print("💾 Final tuned XGBoost model saved!")
 
 if __name__ == "__main__":

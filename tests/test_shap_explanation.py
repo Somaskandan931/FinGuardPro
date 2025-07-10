@@ -1,5 +1,5 @@
 import pandas as pd
-from explain.explain_utils import (
+from utils.explain_utils import (
     load_model_and_preprocessor,
     preprocess_input,
     explain_transaction,
@@ -11,7 +11,7 @@ if __name__ == "__main__":
     model, scaler, encoders = load_model_and_preprocessor()
 
     # STEP 2: Load sample test transactions
-    test_csv_path = "C:/Users/somas/PycharmProjects/FinGuardPro/data/sample_transactions_full.csv"
+    test_csv_path = "//data/sample_transactions_full.csv"
     raw_df = pd.read_csv(test_csv_path)
 
     # STEP 3: Preprocess the data

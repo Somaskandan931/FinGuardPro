@@ -1,52 +1,59 @@
 import pandas as pd
 import numpy as np
+import os
 import sys
 
-def engineer_features(df):
+def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Generate time-based, amount-based, and behavior-based features
+    for fraud detection modeling.
+    """
     df = df.copy()
 
-    # Ensure timestamp is datetime
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-
-    # --- Time-based Features ---
+    # --- Timestamp Features ---
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     df['hour'] = df['timestamp'].dt.hour
     df['day_of_week'] = df['timestamp'].dt.dayofweek
-    df['is_night'] = df['hour'].apply(lambda x: 1 if (x < 6 or x > 22) else 0)
-    df['is_weekend'] = df['day_of_week'].apply(lambda x: 1 if x >= 5 else 0)
+    df['is_night'] = df['hour'].apply(lambda x: 1 if pd.notnull(x) and (x < 6 or x > 22) else 0)
+    df['is_weekend'] = df['day_of_week'].apply(lambda x: 1 if pd.notnull(x) and x >= 5 else 0)
 
-    # --- Amount-based Features ---
+    # --- Amount Features ---
     df['log_amount'] = np.log1p(df['transaction_amount'])
     df['is_high_value'] = (df['transaction_amount'] > 10000).astype(int)
 
-    # --- Sender-Receiver Behavioral Features ---
+    # --- Sender-Receiver Features ---
     df['sender_receiver_combo'] = df['sender_id'].astype(str) + "_" + df['recipient_id'].astype(str)
-    # is_new_receiver = 1 if this sender-recipient pair appears for the first time, else 0
     df['is_new_receiver'] = (~df.duplicated(subset=['sender_id', 'recipient_id'])).astype(int)
 
-    # --- Sender Activity Features ---
+    # --- Sender Behavior Aggregates ---
     df['sender_txn_count'] = df.groupby('sender_id')['transaction_id'].transform('count')
     df['sender_avg_amt'] = df.groupby('sender_id')['transaction_amount'].transform('mean')
     df['amount_to_avg_ratio'] = df['transaction_amount'] / (df['sender_avg_amt'] + 1e-3)
 
-    # Replace infinities and fill NaNs
+    # --- Cleanup ---
     df.replace([np.inf, -np.inf], 0, inplace=True)
     df.fillna(0, inplace=True)
 
     return df
 
-def main(input_path, output_path):
-    print("📂 Loading raw dataset...")
-    df = pd.read_csv(input_path)
-    print(f"✅ Loaded {len(df)} rows")
-    print(f"📄 Columns in file: {df.columns.tolist()}")
 
-    # Rename columns for consistency only if they exist
+def load_and_engineer(input_path: str, output_path: str) -> None:
+    """
+    Utility function to load raw transaction data,
+    perform feature engineering, and save the processed dataset.
+    """
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"❌ File not found: {input_path}")
+
+    print("📂 Loading dataset...")
+    df = pd.read_csv(input_path)
+    print(f"✅ Loaded {len(df)} rows from {input_path}")
+
+    # Optional renaming for compatibility
     rename_map = {
         'amount': 'transaction_amount'
     }
-    for old_col, new_col in rename_map.items():
-        if old_col in df.columns and new_col not in df.columns:
-            df.rename(columns={old_col: new_col}, inplace=True)
+    df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns}, inplace=True)
 
     # Validate required columns
     required_cols = ['transaction_id', 'timestamp', 'sender_id', 'recipient_id', 'transaction_amount']
@@ -57,19 +64,17 @@ def main(input_path, output_path):
     print("🛠️ Engineering features...")
     df_engineered = engineer_features(df)
 
-    print(f"💾 Saving engineered dataset to {output_path}")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df_engineered.to_csv(output_path, index=False)
-    print("✅ Feature engineering complete.")
+    print(f"✅ Saved engineered dataset to {output_path}")
 
+
+# Allow standalone execution as a script
 if __name__ == "__main__":
-    # Default paths
-    input_path = "C:/Users/somas/PycharmProjects/FinGuardPro/data/synthetic_dataset_large.csv"
-    output_path = "C:/Users/somas/PycharmProjects/FinGuardPro/data/engineered_dataset_large.csv"
+    default_input = "C:/Users/somas/PycharmProjects/FinGuardPro/data/synthetic_dataset_large.csv"
+    default_output = "C:/Users/somas/PycharmProjects/FinGuardPro/data/engineered_dataset_large.csv"
 
-    # Allow command-line override for flexibility
-    if len(sys.argv) > 1:
-        input_path = sys.argv[1]
-    if len(sys.argv) > 2:
-        output_path = sys.argv[2]
+    input_path = sys.argv[1] if len(sys.argv) > 1 else default_input
+    output_path = sys.argv[2] if len(sys.argv) > 2 else default_output
 
-    main(input_path, output_path)
+    load_and_engineer(input_path, output_path)

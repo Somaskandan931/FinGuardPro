@@ -1,5 +1,3 @@
-# train_xgboost_best_split.py
-
 import pandas as pd
 import joblib
 import xgboost as xgb
@@ -9,25 +7,47 @@ from sklearn.metrics import (
     classification_report, confusion_matrix, roc_auc_score,
     roc_curve, precision_recall_curve
 )
+import json
+import os
 import warnings
+import sys
+
 warnings.filterwarnings("ignore")
 
+DATA_DIR = "//data"
+MODEL_DIR = "//models"
+
+def check_xgboost_version():
+    ver = tuple(map(int, xgb.__version__.split(".")))
+    if ver < (1, 6, 0):
+        print(f"⚠️ Warning: Your xgboost version is {xgb.__version__}. "
+              "Versions before 1.6.0 may not support early_stopping_rounds in XGBClassifier.fit().")
+        return False
+    return True
 
 def main():
-    # -------------------- Load Preprocessed Data -------------------- #
-    X_train = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/X_train.csv")
-    X_test = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/X_test.csv")
-    y_train = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/y_train.csv").values.ravel()
-    y_test = pd.read_csv("C:/Users/somas/PycharmProjects/FinGuardPro/data/y_test.csv").values.ravel()
+    # Load preprocessed data
+    X_train = pd.read_csv(os.path.join(DATA_DIR, "X_train.csv"))
+    X_test = pd.read_csv(os.path.join(DATA_DIR, "X_test.csv"))
+    y_train = pd.read_csv(os.path.join(DATA_DIR, "y_train.csv")).values.ravel()
+    y_test = pd.read_csv(os.path.join(DATA_DIR, "y_test.csv")).values.ravel()
+
+    # Load feature columns to enforce column order if exists
+    feature_columns_path = os.path.join(DATA_DIR, "feature_columns.json")
+    if os.path.exists(feature_columns_path):
+        with open(feature_columns_path, "r") as f:
+            feature_columns = json.load(f)
+        X_train = X_train[feature_columns]
+        X_test = X_test[feature_columns]
 
     print(f"📊 Training samples: {len(X_train)}, Testing samples: {len(X_test)}")
     print(f"🔎 Train fraud rate: {y_train.mean():.2%} | Test fraud rate: {y_test.mean():.2%}")
 
-    # -------------------- Handle Class Imbalance -------------------- #
+    # Handle class imbalance
     scale_pos_weight = (y_train == 0).sum() / (y_train == 1).sum()
     print(f"⚖️ Calculated scale_pos_weight: {scale_pos_weight:.2f}")
 
-    # -------------------- Initialize XGBoost Model -------------------- #
+    # Initialize XGBoost model
     model = xgb.XGBClassifier(
         objective='binary:logistic',
         eval_metric='auc',
@@ -42,11 +62,32 @@ def main():
         n_jobs=-1
     )
 
-    # -------------------- Train -------------------- #
     print("🚀 Training XGBoost model...")
-    model.fit(X_train, y_train)
 
-    # -------------------- Predict & Evaluate -------------------- #
+    eval_set = [(X_test, y_test)]
+    # Check xgboost version for early stopping support
+    support_early_stop = check_xgboost_version()
+    try:
+        if support_early_stop:
+            model.fit(
+                X_train, y_train,
+                eval_set=eval_set,
+                early_stopping_rounds=20,
+                verbose=True
+            )
+        else:
+            print("⚠️ early_stopping_rounds not supported, training without early stopping.")
+            model.fit(
+                X_train, y_train,
+                eval_set=eval_set,
+                verbose=True
+            )
+    except TypeError as e:
+        print(f"⚠️ Caught TypeError: {e}")
+        print("Retrying training without early stopping...")
+        model.fit(X_train, y_train)
+
+    # Predict and evaluate
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
 
@@ -60,12 +101,14 @@ def main():
     print(f"🚨 False Alarm Rate: {fp / (fp + tn):.2%}")
     print(f"🎯 Precision: {tp / (tp + fp):.2%}")
 
-    # -------------------- Save Model -------------------- #
-    joblib.dump(model, "C:/Users/somas/PycharmProjects/FinGuardPro/models/xgboost_best_model.pkl")
-    print("💾 Model saved to 'models/xgboost_best_model.pkl'")
+    # Save the model
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    model_path = os.path.join(MODEL_DIR, "xgboost_best_model.pkl")
+    joblib.dump(model, model_path)
+    print(f"💾 Model saved to '{model_path}'")
 
-    # -------------------- Evaluation Plots -------------------- #
-    plt.figure(figsize=(16, 5))
+    # Plot evaluation graphs
+    plt.figure(figsize=(18, 6))
 
     # Confusion Matrix
     plt.subplot(1, 3, 1)
@@ -82,7 +125,7 @@ def main():
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
     plt.title("ROC Curve")
-    plt.legend()
+    plt.legend(loc='lower right')
 
     # Precision-Recall Curve
     plt.subplot(1, 3, 3)
@@ -93,7 +136,10 @@ def main():
     plt.title("Precision-Recall Curve")
 
     plt.tight_layout()
+    plot_path = os.path.join(MODEL_DIR, "evaluation_plots.png")
+    plt.savefig(plot_path)
     plt.show()
+    print(f"📊 Evaluation plots saved to '{plot_path}'")
 
 
 if __name__ == "__main__":
