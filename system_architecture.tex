@@ -1,0 +1,48 @@
+\documentclass{standalone.cls}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds}
+
+\begin{document}
+
+\begin{tikzpicture}[
+    box/.style={rectangle, draw, rounded corners, minimum height=1.5em, minimum width=3em, text centered, font=\footnotesize},
+    db/.style={cylinder, draw, shape aspect=0.3, minimum height=2em, minimum width=2em, text centered, font=\footnotesize},
+    cloud/.style={draw, ellipse, minimum height=2em, minimum width=4em, text centered, font=\footnotesize},
+    arrow/.style={-Stealth, thick},
+    font=\sffamily
+    ]
+
+    % Nodes
+    \node[cloud] (input) at (0, 7) {UPI Transactions};
+    \node[box] (xgboost) at (-4.5, 4.5) {XGBoost Model};
+    \node[box, right=0.8cm of xgboost] (shap) {SHAP TreeExplainer};
+    \node[box, right=0.8cm of shap] (fuzzy) {Fuzzy Name Screening};
+    \node[box, right=0.8cm of fuzzy] (rule) {Rule Engine};
+    \node[box, right=0.8cm of rule] (alert) {Alert System};
+    \node[db, below=0.5cm of fuzzy] (watchlist) {AML Watchlist};
+    \node[box] (user_dash) at (-2.5, 1) {User Dashboard};
+    \node[box, right=2.5cm of user_dash] (admin_dash) {Admin Dashboard};
+    \node[db, below=0.5cm of admin_dash] (db) {PostgreSQL};
+
+    % Docker Container
+    \begin{scope}[on background layer]
+        \node[fit=(xgboost)(shap)(fuzzy)(rule)(alert)(user_dash)(admin_dash)(db), draw, dashed, inner sep=0.4cm, label={[font=\footnotesize]above:Docker Deployment}] (docker) {};
+    \end{scope}
+
+    % Arrows
+    \draw[arrow] (input) -- (xgboost) node[midway, left, font=\scriptsize] {Txns};
+    \draw[arrow] (input) -- (fuzzy);
+    \draw[arrow] (input) -- (rule);
+    \draw[arrow] (xgboost) -- (shap) node[midway, above, font=\scriptsize] {Scores};
+    \draw[arrow] (xgboost) -- (alert);
+    \draw[arrow] (shap) -- (admin_dash) node[midway, above, font=\scriptsize] {Explanations};
+    \draw[arrow] (fuzzy) -- (watchlist) node[midway, right, font=\scriptsize] {Queries};
+    \draw[arrow] (fuzzy) -- (db) node[midway, right, font=\scriptsize] {Matches};
+    \draw[arrow] (rule) -- (alert) node[midway, above, font=\scriptsize] {Flags};
+    \draw[arrow] (rule) -- (db) node[midway, right, font=\scriptsize] {Flags};
+    \draw[arrow] (alert) -- (user_dash) node[midway, above, font=\scriptsize] {Alerts};
+    \draw[arrow] (user_dash) -- (alert) node[midway, below, font=\scriptsize] {Verification};
+    \draw[arrow] (admin_dash) -- (db) node[midway, right, font=\scriptsize] {Logs};
+
+\end{tikzpicture}
+\end{document}

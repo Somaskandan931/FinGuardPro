@@ -1,0 +1,15 @@
+C:\Users\somas\anaconda3\envs\finguard\python.exe C:\Users\somas\PycharmProjects\FinGuardPro\models\stacking_ensemble_2.0.py 
+✅ Meta-model saved as 'stacked_meta_model.pkl'
+🔍 ROC AUC Score: 0.996094782005143
+📊 Classification Report:
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     18994
+           1       0.92      0.83      0.87       387
+
+    accuracy                           1.00     19381
+   macro avg       0.96      0.91      0.93     19381
+weighted avg       0.99      1.00      1.00     19381
+
+
+Process finished with exit code 0

@@ -1,0 +1,59 @@
+C:\Users\somas\anaconda3\envs\finguard\python.exe C:\Users\somas\PycharmProjects\FinGuardPro\models\compare_models.py 
+
+=== XGBoost ===
+AUC: 0.9951
+              precision    recall  f1-score   support
+
+           0       1.00      0.97      0.99     18994
+           1       0.41      0.94      0.57       387
+
+    accuracy                           0.97     19381
+   macro avg       0.70      0.96      0.78     19381
+weighted avg       0.99      0.97      0.98     19381
+
+Confusion Matrix:
+[[18460   534]
+ [   22   365]]
+
+=== LightGBM ===
+AUC: 0.9950
+              precision    recall  f1-score   support
+
+           0       1.00      0.97      0.98     18994
+           1       0.40      0.94      0.56       387
+
+    accuracy                           0.97     19381
+   macro avg       0.70      0.96      0.77     19381
+weighted avg       0.99      0.97      0.98     19381
+
+Confusion Matrix:
+[[18440   554]
+ [   22   365]]
+
+=== CatBoost ===
+AUC: 0.9948
+              precision    recall  f1-score   support
+
+           0       1.00      0.96      0.98     18994
+           1       0.32      0.96      0.48       387
+
+    accuracy                           0.96     19381
+   macro avg       0.66      0.96      0.73     19381
+weighted avg       0.99      0.96      0.97     19381
+
+Confusion Matrix:
+[[18218   776]
+ [   17   370]]
+
+=== Ensemble ===
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     18994
+           1       0.82      0.81      0.82       387
+
+    accuracy                           0.99     19381
+   macro avg       0.91      0.90      0.91     19381
+weighted avg       0.99      0.99      0.99     19381
+
+
+

@@ -13,10 +13,10 @@ import warnings
 warnings.filterwarnings("ignore")
 
 def main():
-    X_train = pd.read_csv( "//data/X_train.csv" )
-    X_test = pd.read_csv( "//data/X_test.csv" )
-    y_train = pd.read_csv( "//data/y_train.csv" ).values.ravel()
-    y_test = pd.read_csv( "//data/y_test.csv" ).values.ravel()
+    X_train = pd.read_csv( "C:/Users/somas/PycharmProjects/FinGuardPro/data/X_train.csv" )
+    X_test = pd.read_csv( "C:/Users/somas/PycharmProjects/FinGuardPro/data/X_test.csv" )
+    y_train = pd.read_csv( "C:/Users/somas/PycharmProjects/FinGuardPro/data/y_train.csv" ).values.ravel()
+    y_test = pd.read_csv( "C:/Users/somas/PycharmProjects/FinGuardPro/data/y_test.csv" ).values.ravel()
 
     print(f"📊 Training samples: {len(X_train)}, Testing samples: {len(X_test)}")
     print(f"🔎 Train fraud rate: {y_train.mean():.2%} | Test fraud rate: {y_test.mean():.2%}")

@@ -1,29 +1,21 @@
+import os
 import pandas as pd
 import joblib
 import xgboost as xgb
 import matplotlib.pyplot as plt
 import seaborn as sns
+from xgboost.callback import EarlyStopping
 from sklearn.metrics import (
     classification_report, confusion_matrix, roc_auc_score,
     roc_curve, precision_recall_curve
 )
 import json
-import os
 import warnings
-import sys
 
 warnings.filterwarnings("ignore")
 
-DATA_DIR = "//data"
-MODEL_DIR = "//models"
-
-def check_xgboost_version():
-    ver = tuple(map(int, xgb.__version__.split(".")))
-    if ver < (1, 6, 0):
-        print(f"⚠️ Warning: Your xgboost version is {xgb.__version__}. "
-              "Versions before 1.6.0 may not support early_stopping_rounds in XGBClassifier.fit().")
-        return False
-    return True
+DATA_DIR = "C:/Users/somas/PycharmProjects/FinGuardPro/data"
+MODEL_DIR = "C:/Users/somas/PycharmProjects/FinGuardPro/models"
 
 def main():
     # Load preprocessed data
@@ -50,7 +42,7 @@ def main():
     # Initialize XGBoost model
     model = xgb.XGBClassifier(
         objective='binary:logistic',
-        eval_metric='auc',
+        eval_metric='logloss',  # ✅ PUT IT HERE
         use_label_encoder=False,
         scale_pos_weight=scale_pos_weight,
         n_estimators=200,
@@ -64,28 +56,14 @@ def main():
 
     print("🚀 Training XGBoost model...")
 
-    eval_set = [(X_test, y_test)]
-    # Check xgboost version for early stopping support
-    support_early_stop = check_xgboost_version()
-    try:
-        if support_early_stop:
-            model.fit(
-                X_train, y_train,
-                eval_set=eval_set,
-                early_stopping_rounds=20,
-                verbose=True
-            )
-        else:
-            print("⚠️ early_stopping_rounds not supported, training without early stopping.")
-            model.fit(
-                X_train, y_train,
-                eval_set=eval_set,
-                verbose=True
-            )
-    except TypeError as e:
-        print(f"⚠️ Caught TypeError: {e}")
-        print("Retrying training without early stopping...")
-        model.fit(X_train, y_train)
+    model.fit(
+        X_train, y_train,
+        eval_set=[(X_train, y_train), (X_test, y_test)],
+        verbose=True
+    )
+
+    # Get evals result
+    eval_result = model.evals_result()
 
     # Predict and evaluate
     y_pred = model.predict(X_test)
@@ -140,6 +118,24 @@ def main():
     plt.savefig(plot_path)
     plt.show()
     print(f"📊 Evaluation plots saved to '{plot_path}'")
+
+    # Plot training vs validation log loss
+    if eval_result :
+        epochs = len( eval_result["validation_0"]["logloss"] )
+        x_axis = range( epochs )
+        plt.figure( figsize=(8, 5) )
+        plt.plot( x_axis, eval_result["validation_0"]["logloss"], label="Train" )
+        plt.plot( x_axis, eval_result["validation_1"]["logloss"], label="Validation" )
+        plt.xlabel( "Epoch" )
+        plt.ylabel( "Log Loss" )
+        plt.title( "Training vs. Validation Log Loss (XGBoost)" )
+        plt.legend()
+        plt.grid( True )
+        plt.tight_layout()
+        loss_plot_path = os.path.join( MODEL_DIR, "loss_plot.png" )
+        plt.savefig( loss_plot_path, dpi=300 )
+        plt.show()
+        print( f"📉 Loss plot saved to '{loss_plot_path}'" )
 
 
 if __name__ == "__main__":
