@@ -1,59 +1,65 @@
+Here’s your cleaned-up **Markdown (`.md`)** version — ready to save as `README.md` and submit.
 
-# 💼 FinGuard Pro – Real-Time Financial Fraud Detection & Compliance System
+```markdown
+# FinGuard Pro – Real-Time Financial Fraud Detection and Compliance Platform
 
-FinGuard Pro is an end-to-end deep learning-based system for detecting fraudulent financial transactions in real time. It includes SHAP-based explainability, PDF reporting, Streamlit dashboards, and a Flask API — built for both compliance teams and end users.
+**FinGuard Pro** is an end-to-end artificial intelligence system for detecting fraudulent financial transactions in real time.  
+The platform combines deep learning models, SHAP-based explainability, automated PDF reporting, Streamlit dashboards, and a Flask-based REST API.  
+It is designed for deployment by compliance teams, auditors, and end-users, with support for both monitoring and investigation workflows.
 
 ---
 
-## 📂 Project Structure
+## 1. Project Structure
 
 ```
+
 FinGuardPro/
-├── models/                   # Trained model and preprocessors
-├── data/                    # CSV input for training/testing
-├── dashboards/              # Admin & user Streamlit dashboards
-├── explain/                 # SHAP utils + saved images
-├── reports/                 # PDF/ZIP report generation logic
-├── api/                     # Flask API for real-time fraud detection
-├── notebooks/               # Model training notebook (Colab/Jupyter)
-├── requirements.txt         # Python dependencies
-├── README.md                # Project documentation
+├── models/            # Trained model files and preprocessing assets
+├── data/              # CSV input datasets for training/testing
+├── dashboards/        # Streamlit dashboards (Admin and User)
+├── explain/           # SHAP utilities and generated visualizations
+├── reports/           # PDF and ZIP report generation logic
+├── api/               # Flask API for real-time fraud detection
+├── notebooks/         # Jupyter/Colab notebooks for model training
+├── requirements.txt   # Python dependencies
+├── README.md          # Project documentation
 └── .gitignore
-```
+
+````
 
 ---
 
-## ✅ Features
+## 2. Features
 
-| Module                     | Description                                            |
-|----------------------------|--------------------------------------------------------|
-| 🧠 Fraud Model (Autoencoder + Dense) | Real-time scoring of suspicious transactions     |
-| 🔍 SHAP Explainability     | Bar/force plots for transaction feature importance     |
-| 📄 PDF Report Generator    | One-click fraud audit reports                          |
-| 📦 Batch Reports (ZIP)     | Generate all flagged transactions in bulk              |
-| 🖥️ Admin Dashboard         | Secure role-based view for auditors/compliance         |
-| 👤 User Dashboard          | End-user dashboard to track transaction risks          |
-| 🌐 REST API                | Flask API for backend integration                      |
+| Module                             | Description                                                  |
+|------------------------------------|--------------------------------------------------------------|
+| Fraud Detection Model              | Autoencoder + Dense layers for real-time fraud scoring       |
+| SHAP Explainability                 | Visual interpretation of transaction feature importance      |
+| PDF Report Generator                | Automated fraud audit reports                                |
+| Batch Reporting (ZIP)               | Bulk generation of flagged transaction reports               |
+| Admin Dashboard                     | Role-based secure view for auditors and compliance teams     |
+| User Dashboard                      | Personalized dashboard for individual risk monitoring        |
+| REST API (Flask)                    | Backend service for fraud prediction and SHAP plot delivery  |
 
 ---
 
-## ⚙️ Installation
+## 3. Installation
 
-### 📦 Clone Repo
-
+### 3.1 Clone the Repository
 ```bash
 git clone https://github.com/Somaskandan931/finguard-pro.git
 cd FinGuardPro
-```
+````
 
-### 🐍 Create virtual environment
+### 3.2 Create a Virtual Environment
 
 ```bash
 python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
 ```
 
-### 📦 Install dependencies
+### 3.3 Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -61,94 +67,79 @@ pip install -r requirements.txt
 
 ---
 
-## 🚀 Usage Guide
+## 4. Usage Guide
 
-### 1️⃣ Train the model
+### 4.1 Model Training
 
-Open in Jupyter or Colab:
+Open the following notebook in Jupyter or Google Colab:
 
 ```
 notebooks/training_pipeline.ipynb
 ```
 
-After training, it will save:
-- `models/fraud_detection_model.h5`
-- `models/scaler.pkl`
-- `models/label_encoders.pkl`
+After training, the following files are generated:
+
+* `models/fraud_detection_model.h5`
+* `models/scaler.pkl`
+* `models/label_encoders.pkl`
 
 ---
 
-### 2️⃣ Run Admin Dashboard
+### 4.2 Running the Admin Dashboard
 
 ```bash
-streamlit run dasboards/admin_dashboard.py
+streamlit run dashboards/admin_dashboard.py
 ```
 
-**OR use the launcher script:**
+**Alternative:**
 
 ```bash
 python run_dashboards.py admin
 ```
 
-**Login Credentials:**
-- Username: `admin`
-- Password: `admin123`
+**Default Credentials:**
 
-**OR**
+* `admin` / `admin123`
+* `compliance` / `admin123`
 
-- Username: `compliance`
-- Password: `admin123`
+**Key Functions:**
 
-**Features:**
-- Modern, responsive UI with gradient backgrounds
-- Multi-page dashboard navigation
-- Upload and analyze transaction CSV files
-- Real-time fraud detection with risk scoring
-- Advanced analytics and visualizations
-- Export results to CSV
-- System status monitoring
-- Settings configuration
+* Transaction CSV upload and analysis
+* Real-time fraud risk scoring
+* Advanced analytics and visualizations
+* CSV export of results
+* System monitoring and configuration
 
 ---
 
-### 3️⃣ Run User Dashboard
+### 4.3 Running the User Dashboard
 
 ```bash
-streamlit run dasboards/user_dashboard.py
+streamlit run dashboards/user_dashboard.py
 ```
 
-**OR use the launcher script:**
+**Alternative:**
 
 ```bash
 python run_dashboards.py user
 ```
 
-**Login Credentials:**
-- Username: `user1`
-- Password: `user123`
+**Default Credentials:**
 
-**OR**
+* `user1` / `user123`
+* `user2` / `user123`
+* `demo` / `user123`
 
-- Username: `user2`
-- Password: `user123`
+**Key Functions:**
 
-**OR**
-
-- Username: `demo`
-- Password: `user123`
-
-**Features:**
-- Personal financial security dashboard
-- Upload and analyze personal transactions
-- Risk assessment with visual indicators
-- Transaction analytics and charts
-- Export personal reports
-- Security tips and recommendations
-- Customizable user settings
+* Personal transaction upload and analysis
+* Risk visualization and assessment
+* Security recommendations
+* Report export options
 
 ---
 
-### 4️⃣ Run Flask API
+### 4.4 Running the Flask API
 
 ```bash
 python api/api_server.py
@@ -156,25 +147,26 @@ python api/api_server.py
 
 **Endpoints:**
 
-- `/predict` (POST): Accepts JSON of transaction → returns fraud score + SHAP URL  
-- `/shap-image` (GET): Returns most recent SHAP plot as PNG
+* `POST /predict` → Accepts JSON input; returns fraud score and SHAP plot URL
+* `GET /shap-image` → Returns the most recent SHAP plot as PNG
 
 ---
 
-## 📁 Generate Batch Reports (ZIP)
+## 5. Batch Report Generation
 
-Can be triggered via Admin Dashboard  
-OR run manually:
+Reports can be generated via the Admin Dashboard or programmatically:
 
 ```python
 from reports.zip_reports import generate_batch_reports
+import pandas as pd
+
 df = pd.read_csv("data/test_transactions.csv")
 generate_batch_reports(df)
 ```
 
 ---
 
-## ✅ Requirements
+## 6. Requirements
 
 ```
 streamlit
@@ -193,29 +185,17 @@ PyYAML
 
 ---
 
-## 🛡️ Security Notes
+## 7. Security Considerations
 
-- Passwords are securely hashed using `streamlit-authenticator`
-- Session cookies isolate user/admin dashboard
-- SHAP explanations are only shown to admins
-
----
-
-## 🌐 Deployment
-
-- **Streamlit Dashboards** → https://streamlit.io/cloud
-- **Flask API** → https://render.com or https://railway.app
+* Passwords are securely hashed using `streamlit-authenticator`
+* Session cookies ensure role-based access isolation
+* SHAP explanations restricted to administrator accounts
 
 ---
 
-## 👨‍💻 Contributors
+## 8. Deployment
 
-- Somaskandan Rajagopal (Project Owner)
+* **Streamlit Dashboards**: Deploy to [Streamlit Cloud](https://streamlit.io/cloud)
+* **Flask API**: Deploy to [Render](https://render.com) or [Railway](https://railway.app)
 
----
 
-## 📜 License
-
-MIT License. Use freely for academic, research, or fintech prototype use.
-
----
