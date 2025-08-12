@@ -1,6 +1,4 @@
-Here’s your cleaned-up **Markdown (`.md`)** version — ready to save as `README.md` and submit.
 
-```markdown
 # FinGuard Pro – Real-Time Financial Fraud Detection and Compliance Platform
 
 **FinGuard Pro** is an end-to-end artificial intelligence system for detecting fraudulent financial transactions in real time.  
