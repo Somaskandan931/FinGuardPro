@@ -1,199 +1,198 @@
+# FinGuard Pro  
+## Explainable AI for Financial Fraud Detection and Anti-Financial Crime Compliance
 
-# FinGuard Pro – Real-Time Financial Fraud Detection and Compliance Platform
+FinGuard Pro is a **real-time, explainable financial fraud detection system** designed for **UPI-style digital payment transactions**.  
+The system combines **machine learning**, **rule-based AML screening**, and **SHAP-based explainability** to deliver transparent, compliance-ready fraud risk assessments.
 
-**FinGuard Pro** is an end-to-end artificial intelligence system for detecting fraudulent financial transactions in real time.  
-The platform combines deep learning models, SHAP-based explainability, automated PDF reporting, Streamlit dashboards, and a Flask-based REST API.  
-It is designed for deployment by compliance teams, auditors, and end-users, with support for both monitoring and investigation workflows.
+This project is associated with an **IEEE international conference publication**.
 
 ---
 
-## 1. Project Structure
+## Problem Statement
+
+Modern fraud detection systems often achieve high predictive accuracy, but operate as **black boxes**, making them unsuitable for **regulated financial environments**. Financial institutions require systems that not only detect fraud effectively but also **explain why a transaction is flagged**, enabling auditability, trust, and human oversight.
+
+---
+
+## Solution Overview
+
+FinGuard Pro addresses this challenge through a **hybrid architecture** that integrates:
+
+- High-recall machine learning models for fraud detection
+- SHAP-based explainability for transparent decision-making
+- Rule-based AML screening for known financial crime patterns
+- Real-time APIs and dashboards for operational use
+
+The system prioritizes **missed-fraud minimization** while ensuring that every decision is **human-interpretable**.
+
+---
+
+## System Architecture
 
 ```
-
-FinGuardPro/
-├── models/            # Trained model files and preprocessing assets
-├── data/              # CSV input datasets for training/testing
-├── dashboards/        # Streamlit dashboards (Admin and User)
-├── explain/           # SHAP utilities and generated visualizations
-├── reports/           # PDF and ZIP report generation logic
-├── api/               # Flask API for real-time fraud detection
-├── notebooks/         # Jupyter/Colab notebooks for model training
-├── requirements.txt   # Python dependencies
-├── README.md          # Project documentation
-└── .gitignore
-
-````
-
----
-
-## 2. Features
-
-| Module                             | Description                                                  |
-|------------------------------------|--------------------------------------------------------------|
-| Fraud Detection Model              | Autoencoder + Dense layers for real-time fraud scoring       |
-| SHAP Explainability                 | Visual interpretation of transaction feature importance      |
-| PDF Report Generator                | Automated fraud audit reports                                |
-| Batch Reporting (ZIP)               | Bulk generation of flagged transaction reports               |
-| Admin Dashboard                     | Role-based secure view for auditors and compliance teams     |
-| User Dashboard                      | Personalized dashboard for individual risk monitoring        |
-| REST API (Flask)                    | Backend service for fraud prediction and SHAP plot delivery  |
+UPI Transaction Stream
+↓
+Feature Engineering
+↓
+XGBoost Fraud Detection Model
+↓
+SHAP Explainability Engine
+↓
+Rule-based AML Screening
+↓
+Flask REST APIs
+↓
+User & Analyst Dashboards
+```
 
 ---
 
-## 3. Installation
+## Key Features
 
-### 3.1 Clone the Repository
+- Real-time fraud risk scoring for digital payments  
+- SHAP-based **global and local explanations**  
+- Analyst dashboards for transaction investigation  
+- Rule-based AML detection (structuring, velocity, geo anomalies)  
+- Fuzzy name screening against watchlists and PEPs  
+- Modular ML pipeline for experimentation and extension  
+
+---
+
+## Dataset
+
+- **Synthetic UPI transaction dataset**
+- ~**100,000 transactions**
+- ~**3% fraud rate**
+- Designed using **RBI fraud typologies** and PaySim-inspired behavioral models
+- Includes simulated **AML watchlist entities (~1,000 profiles)**
+
+The dataset was generated to reflect **realistic Indian digital payment behavior** while preserving privacy.
+
+---
+
+## Machine Learning Approach
+
+- **Problem Type:** Binary classification (fraud / non-fraud)
+- **Primary Model:** XGBoost
+- **Key Challenges Addressed:**
+  - Severe class imbalance
+  - False-negative minimization
+  - Interpretability in high-risk decisions
+
+### Model Strategy
+- Threshold tuning to prioritize recall
+- Feature engineering focused on transaction behavior patterns
+- Evaluation across multiple fraud-rate scenarios
+
+---
+
+## Results & Evaluation
+
+### Model Performance (XGBoost)
+
+- **Recall:** 94%
+- **Precision:** 41%
+- **F1-score:** 0.57
+- **Accuracy:** 97%
+- **AUC-ROC:** ≈ 0.995
+- **Inference Latency:** < 3 seconds per transaction
+
+The system prioritizes **high recall** to minimize missed fraudulent transactions, while managing false positives through downstream verification.
+
+### Robustness Analysis
+The model was evaluated under varying fraud rates (0.5%, 1%, and 5%) and consistently maintained high recall, demonstrating robustness under realistic UPI fraud scenarios.
+
+---
+
+## Explainability & Compliance
+
+Explainability is a **core design principle**, not an afterthought.
+
+FinGuard Pro integrates **SHAP (TreeExplainer)** to provide:
+
+- **Global explanations** for feature importance
+- **Local explanations** (waterfall plots) for individual transactions
+
+These explanations enable:
+- Transparent fraud investigation
+- Regulatory auditability
+- Human-in-the-loop decision-making
+
+---
+
+## AML & Rule-Based Screening
+
+In addition to ML-based detection, FinGuard Pro includes:
+
+- **Fuzzy name screening** using RapidFuzz
+- Rule-based detection of:
+  - Transaction structuring
+  - Round-tripping
+  - Velocity anomalies
+  - Geographic inconsistencies
+
+This hybrid approach strengthens detection coverage and aligns with real-world anti-financial crime workflows.
+
+---
+
+## Tech Stack
+
+- **Language:** Python  
+- **ML & XAI:** XGBoost, scikit-learn, SHAP  
+- **Backend:** Flask, REST APIs  
+- **Visualization:** Streamlit  
+- **Database:** PostgreSQL  
+
+---
+
+## Installation
+
 ```bash
-git clone https://github.com/Somaskandan931/finguard-pro.git
+git clone https://github.com/Somaskandan931/FinGuardPro.git
 cd FinGuardPro
-````
-
-### 3.2 Create a Virtual Environment
-
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
-```
-
-### 3.3 Install Dependencies
-
-```bash
 pip install -r requirements.txt
 ```
 
----
-
-## 4. Usage Guide
-
-### 4.1 Model Training
-
-Open the following notebook in Jupyter or Google Colab:
-
-```
-notebooks/training_pipeline.ipynb
-```
-
-After training, the following files are generated:
-
-* `models/fraud_detection_model.h5`
-* `models/scaler.pkl`
-* `models/label_encoders.pkl`
-
----
-
-### 4.2 Running the Admin Dashboard
+## Running the Application
 
 ```bash
-streamlit run dashboards/admin_dashboard.py
+python app.py
 ```
 
-**Alternative:**
+or for dashboards:
 
 ```bash
-python run_dashboards.py admin
-```
-
-**Default Credentials:**
-
-* `admin` / `admin123`
-* `compliance` / `admin123`
-
-**Key Functions:**
-
-* Transaction CSV upload and analysis
-* Real-time fraud risk scoring
-* Advanced analytics and visualizations
-* CSV export of results
-* System monitoring and configuration
-
----
-
-### 4.3 Running the User Dashboard
-
-```bash
-streamlit run dashboards/user_dashboard.py
-```
-
-**Alternative:**
-
-```bash
-python run_dashboards.py user
-```
-
-**Default Credentials:**
-
-* `user1` / `user123`
-* `user2` / `user123`
-* `demo` / `user123`
-
-**Key Functions:**
-
-* Personal transaction upload and analysis
-* Risk visualization and assessment
-* Security recommendations
-* Report export options
-
----
-
-### 4.4 Running the Flask API
-
-```bash
-python api/api_server.py
-```
-
-**Endpoints:**
-
-* `POST /predict` → Accepts JSON input; returns fraud score and SHAP plot URL
-* `GET /shap-image` → Returns the most recent SHAP plot as PNG
-
----
-
-## 5. Batch Report Generation
-
-Reports can be generated via the Admin Dashboard or programmatically:
-
-```python
-from reports.zip_reports import generate_batch_reports
-import pandas as pd
-
-df = pd.read_csv("data/test_transactions.csv")
-generate_batch_reports(df)
+streamlit run dashboard.py
 ```
 
 ---
 
-## 6. Requirements
+## Limitations
 
-```
-streamlit
-streamlit-authenticator
-tensorflow
-pandas
-numpy
-scikit-learn
-matplotlib
-shap
-fpdf
-joblib
-flask
-PyYAML
-```
+- Synthetic dataset; real-world deployment would require live data validation
+- Designed for structured transaction data only
+- Explainability introduces minor inference overhead
 
 ---
 
-## 7. Security Considerations
+## Future Work
 
-* Passwords are securely hashed using `streamlit-authenticator`
-* Session cookies ensure role-based access isolation
-* SHAP explanations restricted to administrator accounts
+- Streaming ingestion using Kafka
+- Automated compliance report generation
+- Model drift detection and monitoring
+- Deep learning models with explainability
 
 ---
 
-## 8. Deployment
+## Publication
 
-* **Streamlit Dashboards**: Deploy to [Streamlit Cloud](https://streamlit.io/cloud)
-* **Flask API**: Deploy to [Render](https://render.com) or [Railway](https://railway.app)
+**FinGuard Pro: Explainable AI for Financial Fraud Detection and Anti-Financial Crime Compliance**  
+Presented at the 4th International Conference on Applied Artificial Intelligence and Computing (ICAAIC 2025)  
+Published in IEEE Conference Proceedings  
+ISBN: 979-8-3315-6587-9
 
+---
 
+## License
+
+Academic and research use only.
